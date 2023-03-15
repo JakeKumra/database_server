@@ -10,7 +10,6 @@ public class Table {
 
     public Table() {
         this.tableInstance = new ArrayList<>();
-
     }
 
     public void addRow (HashMap<String, String> newRow) {
@@ -23,7 +22,7 @@ public class Table {
         }
     }
 
-    // fix: test that this function is working correctly
+    // TODO test that this function is working correctly
     public void checkDuplicatePK(HashMap<String, String> rowToCheck) throws TableException {
         Object newRowPKString = rowToCheck.get("id");
         for (HashMap<String, String> eachRow : tableInstance) {
@@ -45,7 +44,7 @@ public class Table {
 
 
 
-    // fix: implement the functionality for this method
+    // TODO implement the functionality for this method
 //    public void checkMissingColumns(HashMap<String, String> rowToCheck) throws TableException {
 //        // if missing columns throw error, else return true
 //        throw new TableException("Missing columns in row.");

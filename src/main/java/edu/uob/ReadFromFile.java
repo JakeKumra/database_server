@@ -28,14 +28,14 @@ public class ReadFromFile {
                 buffReader.close();
                 return tableData;
             } catch (FileNotFoundException e) {
-                // fix: log to standard error output instead of standard output?
+                // TODO log to standard error output instead of standard output?
                 System.out.println(e);
             } catch (IOException e) {
-                // fix: log to standard error output instead of standard output?
+                // TODO log to standard error output instead of standard output?
                 System.out.println(e);
             }
         } else {
-            // fix: log to standard error output instead of standard output?
+            // TODO log to standard error output instead of standard output?
             System.out.println("This file doesn't exist");
         }
         return null;

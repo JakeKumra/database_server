@@ -29,16 +29,51 @@ public class DBServer {
         String fileName = storageFolderPath + File.separator + "PeopleDB" + File.separator + "people.tab";
         ReadFromFile r = new ReadFromFile(fileName);
         if (r.readFileContents() != null) {
-            ArrayList<String> tableData = r.readFileContents();
-            Table newTable = createTableDataStructure(tableData);
-        }
 
+            // read in data from file and store each line in an ArrayList of strings
+            ArrayList<String> tableDataFromFile = r.readFileContents();
+            Table newTable = createTableDataStructure(tableDataFromFile);
+
+            // this is the key for adding the table to the database
+            String tableName = "people";
+            Database newDatabase = new Database();
+            newDatabase.addTableToDb(tableName, newTable);
+
+            // get key-value pair associated database
+            HashMap<String, Table> databaseTables = newDatabase.getDbTables();
+
+            writeToFileSystem(newTable, "testTableName", "testDatabaseName");
+        }
         try {
             // Create the database storage folder if it doesn't already exist !
             Files.createDirectories(Paths.get(storageFolderPath));
         } catch(IOException ioe) {
             System.out.println("Can't seem to create database storage folder " + storageFolderPath);
         }
+    }
+
+    // TODO rename this method
+    public void writeToFileSystem(Table tableToAddToFile, String tableName, String databaseName) {
+
+        storageFolderPath = Paths.get("databases").toAbsolutePath().toString();
+        File databasePath = new File(storageFolderPath + File.separator + databaseName);
+        File databasesFolder = new File(storageFolderPath);
+        File tableFile = new File(databasePath + File.separator + tableName);
+        tableFile.
+        System.out.println(tableFile);
+        if (!databasesFolder.exists()) {
+            databasesFolder.mkdir();
+        }
+
+        if (!databasePath.exists()) {
+            databasePath.mkdir();
+            System.out.println("Folder created successfully");
+        } else {
+            System.out.println("Folder already exists");
+        }
+
+        // add a file corresponding to tableName
+        // add the tableToAddToFile to the correct file
     }
 
     public Table createTableDataStructure(ArrayList<String> tableData) {
