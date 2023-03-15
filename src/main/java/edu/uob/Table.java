@@ -42,6 +42,10 @@ public class Table {
         return tableColumn;
     }
 
+    public HashMap<String, String> getRowData (int rowNum) {
+        return tableInstance.get(rowNum);
+    }
+
 
 
     // TODO implement the functionality for this method

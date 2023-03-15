@@ -7,6 +7,7 @@ import java.nio.file.Paths;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Set;
 
 /** This class implements the DB server. */
 public class DBServer {
@@ -56,15 +57,15 @@ public class DBServer {
     public void writeToFileSystem(Table tableToAddToFile, String tableName, String databaseName) {
 
         storageFolderPath = Paths.get("databases").toAbsolutePath().toString();
-        File databasePath = new File(storageFolderPath + File.separator + databaseName);
         File databasesFolder = new File(storageFolderPath);
-        File tableFile = new File(databasePath + File.separator + tableName);
-        tableFile.
-        System.out.println(tableFile);
+        File databasePath = new File(storageFolderPath + File.separator + databaseName);
+
+        // if the databases folder doesn't exist then make it
         if (!databasesFolder.exists()) {
             databasesFolder.mkdir();
         }
 
+        // if the target database doesn't exist then make it
         if (!databasePath.exists()) {
             databasePath.mkdir();
             System.out.println("Folder created successfully");
@@ -72,8 +73,30 @@ public class DBServer {
             System.out.println("Folder already exists");
         }
 
-        // add a file corresponding to tableName
+        try {
+            File tableFile = new File(databasePath + File.separator + tableName);
+            if (tableFile.createNewFile()) {
+                System.out.println("File created: " + tableFile.getName());
+            } else {
+                System.out.println("File already exists.");
+            }
+        } catch (IOException e) {
+            System.out.println("Error: unable to create ." + tableName + "file.");
+            // TODO investigate this.
+            e.printStackTrace();
+        }
+
         // add the tableToAddToFile to the correct file
+        // tableToAddToFile is an ArrayList of HashMaps
+        // the keys of which should become the first line in the file
+
+        HashMap<String, String> firstRow =  tableToAddToFile.getRowData(0);
+        Set<String> tableKeys = firstRow.keySet();
+        for (String keys : tableKeys) {
+            System.out.println(keys);
+        }
+
+
     }
 
     public Table createTableDataStructure(ArrayList<String> tableData) {
