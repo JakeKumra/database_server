@@ -12,6 +12,9 @@ public class Table {
         this.tableInstance = new ArrayList<>();
     }
 
+    public ArrayList<HashMap<String, String>>  getAllTableData () {
+        return tableInstance;
+    }
     public void addRow (HashMap<String, String> newRow) {
         try {
             checkDuplicatePK(newRow);

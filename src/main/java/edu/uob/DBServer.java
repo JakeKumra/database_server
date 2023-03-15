@@ -86,17 +86,38 @@ public class DBServer {
             e.printStackTrace();
         }
 
-        // add the tableToAddToFile to the correct file
-        // tableToAddToFile is an ArrayList of HashMaps
-        // the keys of which should become the first line in the file
-
         HashMap<String, String> firstRow =  tableToAddToFile.getRowData(0);
+        ArrayList<String> columnAttributes = new ArrayList<>();
         Set<String> tableKeys = firstRow.keySet();
-        for (String keys : tableKeys) {
-            System.out.println(keys);
+        columnAttributes.add("id");
+        for (String key : tableKeys) {
+            if (!key.equals("id")) {
+                columnAttributes.add(key);
+            }
         }
 
+        if (databasePath.exists()) {
+            try {
+                File tableFile = new File(databasePath + File.separator + tableName);
+                BufferedWriter writer = new BufferedWriter(new FileWriter(tableFile));
+                for (String attribute : columnAttributes) {
+                    writer.write(attribute + "\t");
+                }
+                writer.newLine();
 
+                ArrayList<HashMap<String, String>> allData = tableToAddToFile.getAllTableData();
+
+                for (HashMap<String, String> eachItem : allData) {
+                    // for each HashMap, add the object to the correct column by matching the key
+                    System.out.println("UPDATE HERE");
+                }
+
+
+                writer.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public Table createTableDataStructure(ArrayList<String> tableData) {
