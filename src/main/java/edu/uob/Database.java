@@ -3,13 +3,13 @@ package edu.uob;
 import java.util.HashMap;
 
 public class Database {
-    private HashMap<String, oldTableToBeDeletedLater> tables;
+    private HashMap<String, Table> tables;
 
     public Database() {
         tables = new HashMap<>();
     }
 
-    public void addTable(String tableName, oldTableToBeDeletedLater table) {
+    public void addTable(String tableName, Table table) {
         tables.put(tableName, table);
     }
 
@@ -17,7 +17,7 @@ public class Database {
         tables.remove(tableName);
     }
 
-    public oldTableToBeDeletedLater getTable(String tableName) {
+    public Table getTable(String tableName) {
         return tables.get(tableName);
     }
 }
