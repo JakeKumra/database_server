@@ -25,121 +25,95 @@ public class DBServer {
     */
     public DBServer() {
         storageFolderPath = Paths.get("databases").toAbsolutePath().toString();
-
-        // write a method that reads in the data from the sample data file using the Java File IO API.
-        String fileName = storageFolderPath + File.separator + "PeopleDB" + File.separator + "people.tab";
-        ReadFromFile r = new ReadFromFile(fileName);
-        if (r.readFileContents() != null) {
-
-            // read in data from file and store each line in an ArrayList of strings
-            ArrayList<String> tableDataFromFile = r.readFileContents();
-            Table newTable = createTableDataStructure(tableDataFromFile);
-
-            // this is the key for adding the table to the database
-            String tableName = "people";
-            Database newDatabase = new Database();
-            newDatabase.addTableToDb(tableName, newTable);
-
-            // get key-value pair associated database
-            HashMap<String, Table> databaseTables = newDatabase.getDbTables();
-
-            writeToFileSystem(newTable, "testTableName", "testDatabaseName");
-        }
         try {
             // Create the database storage folder if it doesn't already exist !
             Files.createDirectories(Paths.get(storageFolderPath));
+            Files.createDirectories(Paths.get(storageFolderPath + File.separator + "testDb"));
+
+            String filePath = storageFolderPath + File.separator + "testDb" + File.separator + "testFile";
+            File file = new File(filePath);
+            file.createNewFile();
+            Table newTable = parseFileToTable("people.tab");
+            parseTableToFile(newTable, filePath);
+
         } catch(IOException ioe) {
             System.out.println("Can't seem to create database storage folder " + storageFolderPath);
         }
     }
 
-    // TODO rename this method
-    public void writeToFileSystem(Table tableToAddToFile, String tableName, String databaseName) {
+    public Table parseFileToTable(String fileName) throws IOException {
 
-        storageFolderPath = Paths.get("databases").toAbsolutePath().toString();
-        File databasesFolder = new File(storageFolderPath);
-        File databasePath = new File(storageFolderPath + File.separator + databaseName);
+        String filePath = storageFolderPath + File.separator + "PeopleDB" + File.separator + fileName;
+        BufferedReader reader = new BufferedReader(new FileReader(filePath));
+        String line;
+        String[] headers = null;
 
-        // if the databases folder doesn't exist then make it
-        if (!databasesFolder.exists()) {
-            databasesFolder.mkdir();
-        }
+        ArrayList<Row> rows = new ArrayList<>();
 
-        // if the target database doesn't exist then make it
-        if (!databasePath.exists()) {
-            databasePath.mkdir();
-            System.out.println("Folder created successfully");
-        } else {
-            System.out.println("Folder already exists");
-        }
-
-        try {
-            File tableFile = new File(databasePath + File.separator + tableName);
-            if (tableFile.createNewFile()) {
-                System.out.println("File created: " + tableFile.getName());
+        // line will store the newly read in line
+        while ( (line = reader.readLine() ) != null) {
+            String[] values = line.split("\t");
+            if (headers == null) {
+                // first row is headers i.e. column attribute names
+                headers = values;
             } else {
-                System.out.println("File already exists.");
-            }
-        } catch (IOException e) {
-            System.out.println("Error: unable to create ." + tableName + "file.");
-            // TODO investigate this.
-            e.printStackTrace();
-        }
-
-        HashMap<String, String> firstRow =  tableToAddToFile.getRowData(0);
-        ArrayList<String> columnAttributes = new ArrayList<>();
-        Set<String> tableKeys = firstRow.keySet();
-        columnAttributes.add("id");
-        for (String key : tableKeys) {
-            if (!key.equals("id")) {
-                columnAttributes.add(key);
-            }
-        }
-
-        if (databasePath.exists()) {
-            try {
-                File tableFile = new File(databasePath + File.separator + tableName);
-                BufferedWriter writer = new BufferedWriter(new FileWriter(tableFile));
-                for (String attribute : columnAttributes) {
-                    writer.write(attribute + "\t");
+                ArrayList<DataValue> allValuesInRow = new ArrayList<>();
+                for (int i = 0; i < values.length; i++) {
+                    DataValue dataValue = new DataValue(values[i], headers[i]);
+                    allValuesInRow.add(dataValue);
                 }
-                writer.newLine();
-
-                ArrayList<HashMap<String, String>> allData = tableToAddToFile.getAllTableData();
-
-                for (HashMap<String, String> eachItem : allData) {
-                    // for each HashMap, add the object to the correct column by matching the key
-                    System.out.println("UPDATE HERE");
-                }
-
-
-                writer.close();
-            } catch (IOException e) {
-                e.printStackTrace();
+                Row row = new Row(
+                        Integer.parseInt(allValuesInRow.get(0).getValue()),
+                        allValuesInRow);
+                rows.add(row);
             }
         }
+        reader.close();
+
+        // create a table with the parsed headers and rows
+        Table table = new Table(fileName);
+        for (String header : headers) {
+            Column column = new Column(header);
+            table.addColumn(column);
+        }
+        for (Row row : rows) {
+            table.addRow(row);
+        }
+        return table;
     }
 
-    public Table createTableDataStructure(ArrayList<String> tableData) {
-        String[] tableAttributes = tableData.get(0).split("\t");
-        Table newTable = new Table();
-        for (int i=0; i<tableData.size(); i++) {
-            if (i > 0) {
-                String[] tableRowData = tableData.get(i).split("\t");
-                HashMap<String, String> newRowHashMap = new HashMap<>();
-                for (int k=0; k<tableRowData.length; k++) {
-                    // {id: 1, name: bob, age: 21, email:@net}
-                    newRowHashMap.put(tableAttributes[k], tableRowData[k]);
-                }
-                newTable.addRow(newRowHashMap);
+    public void parseTableToFile(Table table, String filePath) throws IOException {
+        BufferedWriter writer = new BufferedWriter(new FileWriter(filePath));
+
+        // write the headers
+        ArrayList<Column> columns = table.getColumns();
+        for (int i = 0; i < columns.size(); i++) {
+            writer.write(columns.get(i).getName());
+            if (i < columns.size() - 1) {
+                writer.write("\t");
             }
         }
-        ArrayList<String> newColumn = newTable.getColumnData("Age");
-        for (String item : newColumn) {
-            System.out.println(item);
+        writer.newLine();
+
+        // write the rows
+        ArrayList<Row> rows = table.getRows();
+        for (Row row : rows) {
+            ArrayList<DataValue> values = row.getValues();
+            for (int i = 0; i < values.size(); i++) {
+                writer.write(values.get(i).getValue());
+                if (i < values.size() - 1) {
+                    writer.write("\t");
+                }
+            }
+            writer.newLine();
         }
-        return newTable;
+
+        writer.close();
     }
+
+
+
+
 
     /**
     * KEEP this signature (i.e. {@code edu.uob.DBServer.handleCommand(String)}) otherwise we won't be
