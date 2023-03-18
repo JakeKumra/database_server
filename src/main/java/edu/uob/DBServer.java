@@ -1,6 +1,7 @@
 package edu.uob;
 
 import java.io.*;
+import java.lang.reflect.Array;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Paths;
@@ -8,9 +9,13 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.Arrays;
 
 /** This class implements the DB server. */
 public class DBServer {
+
+    private String currentDbName;
 
     private static final char END_OF_TRANSMISSION = 4;
     private String storageFolderPath;
@@ -25,20 +30,30 @@ public class DBServer {
     */
     public DBServer() {
         storageFolderPath = Paths.get("databases").toAbsolutePath().toString();
+        this.currentDatabase = null;
         try {
             // Create the database storage folder if it doesn't already exist !
             Files.createDirectories(Paths.get(storageFolderPath));
             Files.createDirectories(Paths.get(storageFolderPath + File.separator + "testDb"));
-
             String filePath = storageFolderPath + File.separator + "testDb" + File.separator + "testFile";
             File file = new File(filePath);
             file.createNewFile();
             Table newTable = parseFileToTable("people.tab");
+            Database newDatabase = new Database();
+            newDatabase.addTable("people", newTable);
             parseTableToFile(newTable, filePath);
 
         } catch(IOException ioe) {
             System.out.println("Can't seem to create database storage folder " + storageFolderPath);
         }
+    }
+
+    public void setCurrentDbname(String databaseName) {
+        this.currentDbName = databaseName;
+    }
+
+    public String getCurrentDbname() {
+        return currentDbName;
     }
 
     public Table parseFileToTable(String fileName) throws IOException {
@@ -111,9 +126,9 @@ public class DBServer {
         writer.close();
     }
 
+    public boolean checkFileForDb() {
 
-
-
+    }
 
     /**
     * KEEP this signature (i.e. {@code edu.uob.DBServer.handleCommand(String)}) otherwise we won't be
@@ -123,8 +138,27 @@ public class DBServer {
     */
     public String handleCommand(String command) {
 
-        // TODO implement your server logic here
-        return "";
+        Lexer l = new Lexer(command);
+        ArrayList<String> tokens = l.tokenizeInput();
+        Parser p = new Parser(tokens);
+
+        String storageFolderPath = Paths.get("databases", "peopleDB").toAbsolutePath().toString();
+        Database currentDatabase = new Database();
+
+        for (File file : new File(storageFolderPath).listFiles(File::isFile)) {
+            try {
+                currentDatabase.addTable(file.getName(), parseFileToTable(file.getName()));
+            } catch (IOException e) {
+                System.err.println("Error reading file " + file.getName() + " to table: " + e.getMessage());
+            }
+        }
+
+        // gets a hashmap containing all tables, gets values from them and converts to stream
+        // invokes the convertTableToString function on each table
+        // collects resulting string representations and concatonates with newline separator
+        return currentDatabase.getAllTables().values().stream()
+                .map(Table::convertTableToString)
+                .collect(Collectors.joining("\n"));
     }
 
     //  === Methods below handle networking aspects of the project - you will not need to change these ! ===

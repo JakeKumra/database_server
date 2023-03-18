@@ -33,5 +33,25 @@ public class Table {
         return rows;
     }
 
+    public String convertTableToString() {
+        StringBuilder sb = new StringBuilder();
 
-}
+        // add the column headers
+        Row firstRow = rows.get(0);
+        for (DataValue dv : firstRow.getValues()) {
+            sb.append(dv.getColumn().toString());
+            sb.append('\t');
+        }
+        sb.append('\n');
+
+        // add the rest of the rows
+        for (Row row : rows) {
+            for (DataValue dv : row.getValues()) {
+                sb.append(dv.getValue().toString());
+                sb.append('\t');
+            }
+            sb.append('\n');
+        }
+        String stringCopyOfTable = sb.toString();
+        return stringCopyOfTable;
+}   }

@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import java.time.Duration;
+import java.util.ArrayList;
 
 public class ExampleDBTests {
 
@@ -30,6 +31,16 @@ public class ExampleDBTests {
         // Try to send a command to the server - this call will timeout if it takes too long (in case the server enters an infinite loop)
         return assertTimeoutPreemptively(Duration.ofMillis(1000), () -> { return server.handleCommand(command);},
         "Server took too long to respond (probably stuck in an infinite loop)");
+    }
+
+    @Test
+    public void testTokenizer() {
+        String query = "  INSERT  INTO  people   VALUES(  'Simon Lock'  ,35, 'simon@bristol.ac.uk' , 1.8  ) ; ";
+        Lexer instanceLexer = new Lexer(query);
+        ArrayList<String> tokens = instanceLexer.tokenizeInput();
+        for (String token : tokens) {
+            System.out.println(token);
+        }
     }
 
     // A basic test that creates a database, creates a table, inserts some test data, then queries it.
