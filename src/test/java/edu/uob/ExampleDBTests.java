@@ -1,13 +1,11 @@
 package edu.uob;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.fail;
-import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import java.time.Duration;
 import java.util.ArrayList;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ExampleDBTests {
 
@@ -43,8 +41,33 @@ public class ExampleDBTests {
         }
     }
 
+    @Test
+    public void testGetDatabaseFromFile() {
+        // TODO fix below and include robust testing here later on
+        // when this function is called it should create a new database and then test the function
+        // but for now I will hardcode it
+
+        Database testDb = server.getDatabaseFromFile("PeopleDB");
+        assertNotNull(testDb);
+
+        Table peopleTable = testDb.getTable("people");
+        System.out.println(peopleTable.convertTableToString());
+
+        Table studentsTable = testDb.getTable("students");
+        System.out.println(studentsTable.convertTableToString());
+    }
+    //public Database getDatabaseFromFile(String dbName)
+
     // A basic test that creates a database, creates a table, inserts some test data, then queries it.
     // It then checks the response to see that a couple of the entries in the table are returned as expected
+    @Test void testBasicUseQuery() {
+        // TODO this will need to be dynamic so we need to first create a database and THEN test use
+        // for now I am just hard coding it but this will need updating later on
+        String response = sendCommandToServer("USE PeopleDB;");
+        System.out.println(response);
+        // assertTrue(response.contains("[OK]"), "An attempt to USE existing database did not respond [OK]");
+    }
+
     @Test
     public void testBasicCreateAndQuery() {
         String randomName = generateRandomName();
@@ -64,6 +87,7 @@ public class ExampleDBTests {
 
     // A test to make sure that querying returns a valid ID (this test also implicitly checks the "==" condition)
     // (these IDs are used to create relations between tables, so it is essential that they work !)
+
     @Test
     public void testQueryID() {
         String randomName = generateRandomName();

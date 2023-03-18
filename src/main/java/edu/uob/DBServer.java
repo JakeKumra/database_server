@@ -6,6 +6,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Paths;
 import java.nio.file.Files;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
@@ -15,7 +16,7 @@ import java.util.Arrays;
 /** This class implements the DB server. */
 public class DBServer {
 
-    private String currentDbName;
+    private Database currentDatabase;
 
     private static final char END_OF_TRANSMISSION = 4;
     private String storageFolderPath;
@@ -38,27 +39,53 @@ public class DBServer {
             String filePath = storageFolderPath + File.separator + "testDb" + File.separator + "testFile";
             File file = new File(filePath);
             file.createNewFile();
-            Table newTable = parseFileToTable("people.tab");
-            Database newDatabase = new Database();
-            newDatabase.addTable("people", newTable);
-            parseTableToFile(newTable, filePath);
+            // Table newTable = parseFileToTable("people.tab", "PeopleDB");
+//            Database newDatabase = new Database();
+//            newDatabase.addTable("people", newTable);
+//            parseTableToFile(newTable, filePath);
 
         } catch(IOException ioe) {
             System.out.println("Can't seem to create database storage folder " + storageFolderPath);
         }
     }
 
-    public void setCurrentDbname(String databaseName) {
-        this.currentDbName = databaseName;
+    // TODO implement or remove this function / change name
+    public Database getDatabaseFromFile(String dbName) {
+        storageFolderPath = Paths.get("databases").toAbsolutePath().toString();
+        File dbFolder = new File(storageFolderPath, dbName);
+        if (dbFolder.exists() && dbFolder.isDirectory()) {
+            Database database = new Database();
+            File[] allFilesInDb = dbFolder.listFiles();
+            for (File file : allFilesInDb) {
+                if (file.isFile() && file.getName().endsWith(".tab")) {
+                    String tableName = file.getName().substring(0, file.getName().lastIndexOf(".tab"));
+                    try {
+                        Table newTableFromDb = parseFileToTable(tableName, dbName);
+                        database.addTable(newTableFromDb.getName(), newTableFromDb);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        System.out.println("Error creating newTableFromDb");
+                    }
+                }
+            }
+            return database;
+        } else {
+            System.out.println("Unable to locate database in file system");
+            return null;
+        }
     }
 
-    public String getCurrentDbname() {
-        return currentDbName;
+    public Database getCurrentDatabase() {
+        return this.currentDatabase;
+    }
+    public void setCurrentDatabase(Database dbName) {
+        this.currentDatabase = dbName;
     }
 
-    public Table parseFileToTable(String fileName) throws IOException {
+    public Table parseFileToTable(String fileName, String dbName) throws IOException {
 
-        String filePath = storageFolderPath + File.separator + "PeopleDB" + File.separator + fileName;
+        String filePath = storageFolderPath + File.separator + dbName + File.separator + fileName + ".tab";
+
         BufferedReader reader = new BufferedReader(new FileReader(filePath));
         String line;
         String[] headers = null;
@@ -126,10 +153,6 @@ public class DBServer {
         writer.close();
     }
 
-    public boolean checkFileForDb() {
-
-    }
-
     /**
     * KEEP this signature (i.e. {@code edu.uob.DBServer.handleCommand(String)}) otherwise we won't be
     * able to mark your submission correctly.
@@ -141,24 +164,28 @@ public class DBServer {
         Lexer l = new Lexer(command);
         ArrayList<String> tokens = l.tokenizeInput();
         Parser p = new Parser(tokens);
-
-        String storageFolderPath = Paths.get("databases", "peopleDB").toAbsolutePath().toString();
-        Database currentDatabase = new Database();
-
-        for (File file : new File(storageFolderPath).listFiles(File::isFile)) {
-            try {
-                currentDatabase.addTable(file.getName(), parseFileToTable(file.getName()));
-            } catch (IOException e) {
-                System.err.println("Error reading file " + file.getName() + " to table: " + e.getMessage());
-            }
-        }
-
-        // gets a hashmap containing all tables, gets values from them and converts to stream
-        // invokes the convertTableToString function on each table
-        // collects resulting string representations and concatonates with newline separator
-        return currentDatabase.getAllTables().values().stream()
-                .map(Table::convertTableToString)
-                .collect(Collectors.joining("\n"));
+        try {
+            DBcmd cmd = p.parse();
+            return cmd.query(this);
+        } catch (ParseException e) {e.printStackTrace();}
+//        String storageFolderPath = Paths.get("databases", "peopleDB").toAbsolutePath().toString();
+//        Database currentDatabase = new Database();
+//
+//        for (File file : new File(storageFolderPath).listFiles(File::isFile)) {
+//            try {
+//                currentDatabase.addTable(file.getName(), parseFileToTable(file.getName(), "PeopleDB"));
+//            } catch (IOException e) {
+//                System.err.println("Error reading file " + file.getName() + " to table: " + e.getMessage());
+//            }
+//        }
+//
+//        // gets a hashmap containing all tables, gets values from them and converts to stream
+//        // invokes the convertTableToString function on each table
+//        // collects resulting string representations and concatonates with newline separator
+//        return currentDatabase.getAllTables().values().stream()
+//                .map(Table::convertTableToString)
+//                .collect(Collectors.joining("\n"));
+        return "something went wrong here";
     }
 
     //  === Methods below handle networking aspects of the project - you will not need to change these ! ===

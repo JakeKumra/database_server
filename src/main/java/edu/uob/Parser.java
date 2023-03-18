@@ -55,7 +55,6 @@ public class Parser {
         } else {
             // TODO should this fail the parse?
             pos--;
-
         }
 
         // TODO is this correct?
@@ -67,33 +66,33 @@ public class Parser {
         return new UseCMD(databaseName);
     }
 
-    private SelectCMD parseSelect() throws ParseException {
-        SelectCMD cmd = new SelectCMD();
-        // Parse the rest of the command here
-        // Set the attributes of the SelectCMD object based on the tokens
-        return cmd;
-    }
-
-    private AlterCMD parseAlter() throws ParseException {
-        AlterCMD cmd = new AlterCMD();
-        // Parse the rest of the command here
-        // Set the attributes of the AlterCMD object based on the tokens
-        return cmd;
-    }
-
-    private InsertCMD parseInsert() throws ParseException {
-        InsertCMD cmd = new InsertCMD();
-        // Parse the rest of the command here
-        // Set the attributes of the InsertCMD object based on the tokens
-        return cmd;
-    }
-
-    private UpdateCMD parseUpdate() throws ParseException {
-        UpdateCMD cmd = new UpdateCMD();
-        // Parse the rest of the command here
-        // Set the attributes of the UpdateCMD object based on the tokens
-        return cmd;
-    }
+//    private SelectCMD parseSelect() throws ParseException {
+//        SelectCMD cmd = new SelectCMD();
+//        // Parse the rest of the command here
+//        // Set the attributes of the SelectCMD object based on the tokens
+//        return cmd;
+//    }
+//
+//    private AlterCMD parseAlter() throws ParseException {
+//        AlterCMD cmd = new AlterCMD();
+//        // Parse the rest of the command here
+//        // Set the attributes of the AlterCMD object based on the tokens
+//        return cmd;
+//    }
+//
+//    private InsertCMD parseInsert() throws ParseException {
+//        InsertCMD cmd = new InsertCMD();
+//        // Parse the rest of the command here
+//        // Set the attributes of the InsertCMD object based on the tokens
+//        return cmd;
+//    }
+//
+//    private UpdateCMD parseUpdate() throws ParseException {
+//        UpdateCMD cmd = new UpdateCMD();
+//        // Parse the rest of the command here
+//        // Set the attributes of the UpdateCMD object based on the tokens
+//        return cmd;
+//    }
 
     private String getNextToken() throws ParseException {
         if (pos >= tokens.size()) {

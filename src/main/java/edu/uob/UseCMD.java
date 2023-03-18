@@ -9,14 +9,15 @@ public class UseCMD extends DBcmd {
 
     @Override
     public String query(DBServer s) {
+        Database dbFromFile = s.getDatabaseFromFile(dbName);
         // Check if the database exists
-        if (s.getDatabase(dbName) == null) {
-            return "ERROR: Database " + dbName + " does not exist";
+        if (dbFromFile == null) {
+            return "[ERROR] Database " + dbName + " does not exist";
         }
 
         // Set the current database
-        s.setCurrentDb(dbName);
-        return "Database changed to " + dbName;
+        s.setCurrentDatabase(dbFromFile);
+        return "[OK] Database changed to " + dbName;
     }
 }
 
