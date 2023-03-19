@@ -3,10 +3,18 @@ package edu.uob;
 import java.util.HashMap;
 
 public class Database {
+
     private HashMap<String, Table> tables;
 
-    public Database() {
-        tables = new HashMap<>();
+    private String databaseName;
+
+    public Database(String name) {
+        this.tables = new HashMap<>();
+        this.databaseName = name;
+    }
+
+    public String getDatabaseName() {
+        return databaseName;
     }
 
     public void addTable(String tableName, Table table) {

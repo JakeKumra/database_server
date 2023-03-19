@@ -64,14 +64,25 @@ public class ExampleDBTests {
         // TODO this will need to be dynamic so we need to first create a database and THEN test use
         // for now I am just hard coding it but this will need updating later on
         String response = sendCommandToServer("USE PeopleDB;");
-        System.out.println(response);
-        // assertTrue(response.contains("[OK]"), "An attempt to USE existing database did not respond [OK]");
+        assertTrue(response.contains("[OK]"), "An attempt to USE existing database did not respond [OK]");
+        String responseTwo = sendCommandToServer("USE UnknownDb;");
+        assertTrue(responseTwo.contains("[ERROR]"), "Attempt to use non-existing database didn't return [ERROR]");
     }
 
     @Test
     public void testBasicCreateAndQuery() {
         String randomName = generateRandomName();
-        sendCommandToServer("CREATE DATABASE " + randomName + ";");
+        String response = sendCommandToServer("CREATE DATABASE " + randomName + ";");
+        assertTrue(response.contains("[OK]"), "A valid query was made, however an [OK] tag was not returned");
+        String responseTwo = sendCommandToServer("CREATE DATABASE " + randomName + ";");
+        assertTrue(responseTwo.contains("[ERROR]"), "An invalid query was made, database " + randomName + "already exists");
+
+        String randomNameTwo = generateRandomName();
+        String responseThree = sendCommandToServer("CREATE TABLE " + randomNameTwo + ";");
+        System.out.println(responseThree);
+
+        String responseFour = sendCommandToServer("CREATE TABLE " + randomNameTwo + "(name, mark, pass, randomNameTwo.name);");
+
 //        sendCommandToServer("USE " + randomName + ";");
 //        sendCommandToServer("CREATE TABLE marks (name, mark, pass);");
 //        sendCommandToServer("INSERT INTO marks VALUES ('Steve', 65, TRUE);");

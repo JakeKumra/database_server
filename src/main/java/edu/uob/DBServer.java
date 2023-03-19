@@ -33,6 +33,7 @@ public class DBServer {
         storageFolderPath = Paths.get("databases").toAbsolutePath().toString();
         this.currentDatabase = null;
         try {
+            // TODO make sure that the databases folder is created at the beginning
             // Create the database storage folder if it doesn't already exist !
             Files.createDirectories(Paths.get(storageFolderPath));
             Files.createDirectories(Paths.get(storageFolderPath + File.separator + "testDb"));
@@ -51,10 +52,13 @@ public class DBServer {
 
     // TODO implement or remove this function / change name
     public Database getDatabaseFromFile(String dbName) {
-        storageFolderPath = Paths.get("databases").toAbsolutePath().toString();
-        File dbFolder = new File(storageFolderPath, dbName);
+        String databasesPath = new FileManager().getDatabasesPath();
+
+        File dbFolder = new File(databasesPath, dbName);
         if (dbFolder.exists() && dbFolder.isDirectory()) {
-            Database database = new Database();
+            // TODO might need to check this function below as used to be two below
+            Database database = new Database(dbFolder.getName());
+            // Database database = new Database();
             File[] allFilesInDb = dbFolder.listFiles();
             for (File file : allFilesInDb) {
                 if (file.isFile() && file.getName().endsWith(".tab")) {
@@ -160,7 +164,6 @@ public class DBServer {
     * <p>This method handles all incoming DB commands and carries out the required actions.
     */
     public String handleCommand(String command) {
-
         Lexer l = new Lexer(command);
         ArrayList<String> tokens = l.tokenizeInput();
         Parser p = new Parser(tokens);

@@ -9,4 +9,8 @@ public abstract class DBcmd {
     protected String commandType;
 
     public abstract String query(DBServer s);
+
+    public void setDbName(String databaseName) {
+        this.DBname = databaseName;
+    }
 }
