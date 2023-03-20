@@ -31,20 +31,9 @@ public class DBServer {
     */
     public DBServer() {
         storageFolderPath = Paths.get("databases").toAbsolutePath().toString();
-
         try {
-            // TODO make sure that the databases folder is created at the beginning
             // Create the database storage folder if it doesn't already exist !
             Files.createDirectories(Paths.get(storageFolderPath));
-            Files.createDirectories(Paths.get(storageFolderPath + File.separator + "testDb"));
-            String filePath = storageFolderPath + File.separator + "testDb" + File.separator + "testFile";
-            File file = new File(filePath);
-            file.createNewFile();
-            // Table newTable = parseFileToTable("people.tab", "PeopleDB");
-//            Database newDatabase = new Database();
-//            newDatabase.addTable("people", newTable);
-//            parseTableToFile(newTable, filePath);
-
         } catch(IOException ioe) {
             System.out.println("Can't seem to create database storage folder " + storageFolderPath);
         }

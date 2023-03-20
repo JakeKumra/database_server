@@ -31,35 +31,37 @@ public class CreateCMD extends DBcmd {
                 return "[OK] Database " + name + "created";
             }
         } else {
+            // creating a new table within current database
             String currDatabaseName = s.getCurrDbName();
             String path = new FileManager().getDbPath() + File.separator + currDatabaseName;
             File tableFile = new File (path + File.separator + name);
+
+            if (tableFile.exists()) {
+                return "[ERROR]" + " table " + name + " already exists within database" + currDatabaseName;
+            }
+
             if (attributes == null) {
-                if (!tableFile.exists()) {
                     try {
                         tableFile.createNewFile();
                     } catch (IOException e) {
                         e.printStackTrace();
                         System.out.println("Error: unable to create new table file inside CreateCMD");
                     }
-                }
             } else {
                 // create table file with attributes at the first line with id at the start and each one being tab separated
-                if (!tableFile.exists()) {
-                    try {
-                        tableFile.createNewFile();
-                        // write attributes to the first line of the table file
-                        FileWriter writer = new FileWriter(tableFile);
-                        writer.write("id\t");
-                        for (String attribute : attributes) {
-                            writer.write(attribute + "\t");
-                        }
-                        writer.write("\n");
-                        writer.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        System.out.println("Error: unable to create new table file inside CreateCMD");
+                try {
+                    tableFile.createNewFile();
+                    // write attributes to the first line of the table file
+                    FileWriter writer = new FileWriter(tableFile);
+                    writer.write("id\t");
+                    for (String attribute : attributes) {
+                        writer.write(attribute + "\t");
                     }
+                    writer.write("\n");
+                    writer.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    System.out.println("Error: unable to create new table file inside CreateCMD");
                 }
             }
             return "[OK] TABLE " + name + " created";

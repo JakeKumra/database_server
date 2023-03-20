@@ -73,7 +73,7 @@ public class SelectCMD extends DBcmd {
         FileManager FM = new FileManager();
         String tablePath = FM.getDbPath() + File.separator + s.getCurrDbName() + File.separator + tableName;
         if (!new File(tablePath).exists()) {
-            return "[ERROR] no table exists within " + s.getCurrDbName();
+            return "[ERROR] table " + tableName + " doesn't exist within database " + s.getCurrDbName();
         }
         // check that the columns exist and if they don't then return error
         // if it does then pull it into memory

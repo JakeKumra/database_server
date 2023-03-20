@@ -32,16 +32,6 @@ public class ExampleDBTests {
     }
 
     @Test
-    public void testTokenizer() {
-        String query = "  INSERT  INTO  people   VALUES(  'Simon Lock'  ,35, 'simon@bristol.ac.uk' , 1.8  ) ; ";
-        Lexer instanceLexer = new Lexer(query);
-        ArrayList<String> tokens = instanceLexer.tokenizeInput();
-        for (String token : tokens) {
-            System.out.println(token);
-        }
-    }
-
-    @Test
     public void testGetDatabaseFromFile() {
         // TODO fix below and include robust testing here later on
         // when this function is called it should create a new database and then test the function
@@ -72,37 +62,43 @@ public class ExampleDBTests {
     @Test
     public void testBasicCreateAndQuery() {
         String randomName = generateRandomName();
-//        String response = sendCommandToServer("CREATE DATABASE " + randomName + ";");
-//        assertTrue(response.contains("[OK]"), "A valid query was made, however an [OK] tag was not returned");
-//        String responseTwo = sendCommandToServer("CREATE DATABASE " + randomName + ";");
-//        assertTrue(responseTwo.contains("[ERROR]"), "An invalid query was made, database " + randomName + "already exists");
+        sendCommandToServer("CREATE DATABASE " + randomName + ";");
+        sendCommandToServer("USE " + randomName + ";");
+        sendCommandToServer("CREATE TABLE marks (name, mark, pass);");
+        sendCommandToServer("INSERT INTO marks VALUES ('Steve', 65, TRUE);");
+        sendCommandToServer("INSERT INTO marks VALUES ('Dave', 55, TRUE);");
+        sendCommandToServer("INSERT INTO marks VALUES ('Bob', 35, FALSE);");
+        sendCommandToServer("INSERT INTO marks VALUES ('Clive', 20, FALSE);");
+        String response = sendCommandToServer("SELECT * FROM marks;");
+        assertTrue(response.contains("[OK]"), "A valid query was made, however an [OK] tag was not returned");
+        assertFalse(response.contains("[ERROR]"), "A valid query was made, however an [ERROR] tag was returned");
+        assertTrue(response.contains("Steve"), "An attempt was made to add Steve to the table, but they were not returned by SELECT *");
+        assertTrue(response.contains("Clive"), "An attempt was made to add Clive to the table, but they were not returned by SELECT *");
+    }
+
+    @Test
+    public void testBasicCreateAndQueryFailures() {
+        String randomName = generateRandomName();
+        String responseOne = sendCommandToServer("USE " + randomName + ";");
+        assertTrue(responseOne.contains("[ERROR]"), "An attempt to use a non-existent database didn't return [ERROR]");
+
+        sendCommandToServer("CREATE DATABASE " + randomName + ";");
+        String responseTwo = sendCommandToServer("CREATE DATABASE " + randomName + ";");
+        assertTrue(responseTwo.contains("[ERROR]"), "Attempt to create existing database didn't return [ERROR]");
+
+        sendCommandToServer("USE " + randomName + ";");
+        sendCommandToServer("CREATE TABLE marks (name, mark, pass);");
+
+        String responseThree = sendCommandToServer("CREATE TABLE marks (name, mark, pass);");
+        assertTrue(responseThree.contains("[ERROR]"), "Attempt to create existing table didn't return [ERROR]");
+
+
 //
-//        String randomNameTwo = generateRandomName();
-//        String responseThree = sendCommandToServer("CREATE TABLE " + randomNameTwo + ";");
-//        System.out.println(responseThree);
-
-        // TODO write test cases here
-//        sendCommandToServer("USE PeopleDB;");
-//        String randomNameTwo = generateRandomName();
-//        String responseFour = sendCommandToServer("CREATE TABLE " + randomNameTwo + ";");
-//        System.out.println(responseFour);
-//        String responseFive = sendCommandToServer("CREATE TABLE " + randomNameTwo + "(name, mark, table.new, mike);");
-//        System.out.println(responseFive);
-
-        sendCommandToServer("CREATE DATABASE " + "exampleDb" + ";");
-        sendCommandToServer("USE " + "exampleDb" + ";");
-//        sendCommandToServer("CREATE TABLE " + "exampleTable" + ";");
-//        sendCommandToServer("CREATE TABLE exampleTable (name, mark, pass);");
-//        System.out.println(sendCommandToServer("INSERT INTO exampleTable VALUES ('Steve', 65, TRUE);"));
-//        sendCommandToServer("INSERT INTO exampleTable VALUES ('Tom', 38, FALSE);");
-//        sendCommandToServer("INSERT INTO exampleTable VALUES ('Dave', 55, TRUE);")
-//        sendCommandToServer("INSERT INTO exampleTable VALUES ('Bob', 35, FALSE);");
-//        System.out.println(sendCommandToServer("INSERT INTO exampleTable VALUES ('Bob', 35, FALSE);"));
+//        sendCommandToServer("INSERT INTO marks VALUES ('Steve', 65, TRUE);");
+//        sendCommandToServer("INSERT INTO marks VALUES ('Dave', 55, TRUE);");
+//        sendCommandToServer("INSERT INTO marks VALUES ('Bob', 35, FALSE);");
 //        sendCommandToServer("INSERT INTO marks VALUES ('Clive', 20, FALSE);");
-//        String response = sendCommandToServer("SELECT * FROM exampleTable;");
-        // String response = sendCommandToServer("SELECT * FROM exampleTable;");
-        String response = sendCommandToServer("SELECT sam FROM exampleTable;");
-        System.out.println("Response: " + response);
+//        String response = sendCommandToServer("SELECT * FROM marks;");
 //        assertTrue(response.contains("[OK]"), "A valid query was made, however an [OK] tag was not returned");
 //        assertFalse(response.contains("[ERROR]"), "A valid query was made, however an [ERROR] tag was returned");
 //        assertTrue(response.contains("Steve"), "An attempt was made to add Steve to the table, but they were not returned by SELECT *");
