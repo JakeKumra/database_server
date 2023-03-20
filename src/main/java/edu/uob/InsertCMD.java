@@ -27,15 +27,10 @@ public class InsertCMD extends DBcmd {
             try {
                 Table tableFromFile = s.parseFileToTable(tableName, s.getCurrDbName());
                 if (tableFromFile.getRows().size() == 0) {
-
                     String[] tableHeaders = tableFromFile.getHeaders();
-
                     for (String h : tableHeaders) {
                         System.out.println(h);
                     }
-
-                    // create a new row and write it to the file then send response to user
-                    // how to create a new row?
                     ArrayList<DataValue> valuesInRow = new ArrayList<>();
                     DataValue firstVal = new DataValue("1", "id");
                     valuesInRow.add(firstVal);
@@ -44,7 +39,8 @@ public class InsertCMD extends DBcmd {
                         DataValue v = new DataValue(value, "TODO");
                         valuesInRow.add(v);
                     }
-                    // Row newRow = new Row();
+
+                    // Row newRow = new Row(1, );
 
 
                 }

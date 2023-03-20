@@ -53,7 +53,6 @@ public class DBServer {
     // TODO implement or remove this function / change name
     public Database getDatabaseFromFile(String dbName) {
         String databasesPath = new FileManager().getDbPath();
-
         File dbFolder = new File(databasesPath, dbName);
         if (dbFolder.exists() && dbFolder.isDirectory()) {
             // TODO might need to check this function below as used to be two below
