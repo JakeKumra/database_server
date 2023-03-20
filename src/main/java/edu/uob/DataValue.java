@@ -2,11 +2,11 @@ package edu.uob;
 
 public class DataValue {
     private String value;
-    private String column;
+    private String header;
 
     public DataValue(String value, String column) {
         this.value = value;
-        this.column = column;
+        this.header = column;
     }
 
     public String getValue() {
@@ -17,12 +17,12 @@ public class DataValue {
         this.value = value;
     }
 
-    public String getColumn() {
-        return column;
+    public String getHeader() {
+        return header;
     }
 
-    public void setColumn(String column) {
-        this.column = column;
+    public void setHeader(String column) {
+        this.header = column;
     }
 }
 

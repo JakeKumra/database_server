@@ -24,8 +24,8 @@ public class Parser {
             cmd = parseCreate();
         } else if (token.equalsIgnoreCase("INSERT")) {
             cmd = parseInsert();
-//        } else if (token.equalsIgnoreCase("SELECT")) {
-//            cmd = parseSelect();
+        } else if (token.equalsIgnoreCase("SELECT")) {
+            cmd = parseSelect();
 //        } else if (token.equalsIgnoreCase("UPDATE")) {
 //            cmd = parseUpdate();
 //        } else if (token.equalsIgnoreCase("ALTER")) {
@@ -42,7 +42,75 @@ public class Parser {
         return cmd;
     }
 
-    private InsertCMD parseInsert() throws ParseException {
+    private SelectCMD parseSelect() throws ParseException {
+        SelectCMD cmd = new SelectCMD();
+
+        // Consume the "SELECT" keyword
+        if (!getNextToken().equalsIgnoreCase("SELECT")) {
+            throw new ParseException("Expected SELECT keyword", pos);
+        }
+
+        // Parse attribute list
+        if (getNextToken().equals("*")) {
+            cmd.addAttribute("*");
+        } else {
+            pos--;
+            cmd.setAttributeList(parseAttListSelect());
+        }
+
+        // Consume the "FROM" keyword
+        if (!getNextToken().equalsIgnoreCase("FROM")) {
+            throw new ParseException("Expected FROM keyword", pos);
+        }
+
+        // Get table name
+        String tableName = getNextToken();
+        if (!tableName.matches("[a-zA-Z][a-zA-Z0-9]*")) {
+            throw new ParseException("Invalid table name", pos);
+        }
+        cmd.setTableName(tableName);
+
+        // Check if there's a WHERE clause
+        if (getNextToken().equalsIgnoreCase("WHERE")) {
+            cmd.setWhereQuery(true);
+            // cmd.setWhere(parseCondition());
+        } else {
+            pos--;
+        }
+
+        // Consume the semicolon
+        if (!getNextToken().equals(";")) {
+            throw new ParseException("Expected semicolon", pos);
+        }
+
+        return cmd;
+    }
+
+    private List<String> parseAttListSelect() throws ParseException {
+        List<String> attributeList = new ArrayList<>();
+        boolean firstAttribute = true;
+        while (true) {
+            String attributeName = getNextToken();
+            if (!attributeName.matches("[a-zA-Z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9]*)?")) {
+                throw new ParseException("Invalid attribute name: " + attributeName, pos);
+            }
+            attributeList.add(attributeName);
+            if (getNextToken().equals(";")) {
+                break;
+            } else if (firstAttribute && !getCurrentToken().equals(",")) {
+                break;
+            } else if (!getCurrentToken().equals(",")) {
+                throw new ParseException("Expected comma between attribute names", pos);
+            }
+            firstAttribute = false;
+        }
+        return attributeList;
+    }
+
+
+
+
+            private InsertCMD parseInsert() throws ParseException {
 
         // Consume the "INSERT INTO" keywords
         if (!getNextToken().equalsIgnoreCase("INSERT") || !getNextToken().equalsIgnoreCase("INTO")) {
@@ -257,13 +325,6 @@ public class Parser {
         return new UseCMD(databaseName);
     }
 
-//    private SelectCMD parseSelect() throws ParseException {
-//        SelectCMD cmd = new SelectCMD();
-//        // Parse the rest of the command here
-//        // Set the attributes of the SelectCMD object based on the tokens
-//        return cmd;
-//    }
-//
 //    private AlterCMD parseAlter() throws ParseException {
 //        AlterCMD cmd = new AlterCMD();
 //        // Parse the rest of the command here

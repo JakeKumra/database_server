@@ -5,7 +5,6 @@ import java.util.List;
 public class Table {
     private String name;
     private ArrayList<Column> columns;
-
     private String[] headers;
     private ArrayList<Row> rows;
 
@@ -15,7 +14,7 @@ public class Table {
         this.rows = new ArrayList<>();
     }
 
-    public void setHeaders(String[] headers) {
+    public void setHeaders(String [] headers) {
         this.headers = headers;
     }
 
@@ -49,7 +48,7 @@ public class Table {
         // add the column headers
         Row firstRow = rows.get(0);
         for (DataValue dv : firstRow.getValues()) {
-            sb.append(dv.getColumn().toString());
+            sb.append(dv.getHeader().toString());
             sb.append('\t');
         }
         sb.append('\n');

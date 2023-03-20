@@ -11,6 +11,12 @@ public class Row {
         this.values = values;
     }
 
+    public void printRow() {
+        for (DataValue val : values) {
+            System.out.println(val.getValue());
+        }
+    }
+
     public int getRowLength() {
         return values.size();
     }

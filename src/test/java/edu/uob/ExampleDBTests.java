@@ -91,13 +91,16 @@ public class ExampleDBTests {
 
         sendCommandToServer("CREATE DATABASE " + "exampleDb" + ";");
         sendCommandToServer("USE " + "exampleDb" + ";");
-//         sendCommandToServer("CREATE TABLE " + "exampleTable" + ";");
-        sendCommandToServer("CREATE TABLE exampleTable (name, mark, pass);");
-        System.out.println(sendCommandToServer("INSERT INTO exampleTable VALUES ('Steve', 65, TRUE);"));
-//        sendCommandToServer("INSERT INTO marks VALUES ('Dave', 55, TRUE);");
-//        sendCommandToServer("INSERT INTO marks VALUES ('Bob', 35, FALSE);");
+//        sendCommandToServer("CREATE TABLE " + "exampleTable" + ";");
+//        sendCommandToServer("CREATE TABLE exampleTable (name, mark, pass);");
+//        System.out.println(sendCommandToServer("INSERT INTO exampleTable VALUES ('Steve', 65, TRUE);"));
+//        sendCommandToServer("INSERT INTO exampleTable VALUES ('Tom', 38, FALSE);");
+//        sendCommandToServer("INSERT INTO exampleTable VALUES ('Dave', 55, TRUE);")
+//        sendCommandToServer("INSERT INTO exampleTable VALUES ('Bob', 35, FALSE);");
+//        System.out.println(sendCommandToServer("INSERT INTO exampleTable VALUES ('Bob', 35, FALSE);"));
 //        sendCommandToServer("INSERT INTO marks VALUES ('Clive', 20, FALSE);");
-//        String response = sendCommandToServer("SELECT * FROM marks;");
+        String response = sendCommandToServer("SELECT * FROM exampleTable;");
+        System.out.println("Response: " + response);
 //        assertTrue(response.contains("[OK]"), "A valid query was made, however an [OK] tag was not returned");
 //        assertFalse(response.contains("[ERROR]"), "A valid query was made, however an [ERROR] tag was returned");
 //        assertTrue(response.contains("Steve"), "An attempt was made to add Steve to the table, but they were not returned by SELECT *");

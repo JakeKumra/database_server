@@ -53,6 +53,7 @@ public class DBServer {
     // TODO implement or remove this function / change name
     public Database getDatabaseFromFile(String dbName) {
         String databasesPath = new FileManager().getDbPath();
+
         File dbFolder = new File(databasesPath, dbName);
         if (dbFolder.exists() && dbFolder.isDirectory()) {
             // TODO might need to check this function below as used to be two below
@@ -91,18 +92,15 @@ public class DBServer {
     }
 
     public Table parseFileToTable(String fileName, String dbName) throws IOException {
-
-        String filePath = storageFolderPath + File.separator + dbName + File.separator + fileName;
+        String filePath = new FileManager().getDbPath() + File.separator + dbName + File.separator + fileName;
 
         BufferedReader reader = new BufferedReader(new FileReader(filePath));
         String line;
         String[] headers = null;
-
         ArrayList<Row> rows = new ArrayList<>();
-
         // line will store the newly read in line
         while ( (line = reader.readLine() ) != null) {
-            String[] values = line.split("\t");
+            String[] values = line.split("\\s+");
             if (headers == null) {
                 // first row is headers i.e. column attribute names
                 headers = values;
@@ -112,9 +110,8 @@ public class DBServer {
                     DataValue dataValue = new DataValue(values[i], headers[i]);
                     allValuesInRow.add(dataValue);
                 }
-                Row row = new Row(
-                        Integer.parseInt(allValuesInRow.get(0).getValue()),
-                        allValuesInRow);
+                int id_num = Integer.parseInt(allValuesInRow.get(0).getValue());
+                Row row = new Row(id_num, allValuesInRow);
                 rows.add(row);
             }
         }
@@ -127,6 +124,7 @@ public class DBServer {
             Column column = new Column(header);
             table.addColumn(column);
         }
+
         for (Row row : rows) {
             table.addRow(row);
         }
@@ -134,17 +132,27 @@ public class DBServer {
     }
 
     public void parseTableToFile(Table table, String filePath) throws IOException {
+        System.out.println(filePath);
         BufferedWriter writer = new BufferedWriter(new FileWriter(filePath));
 
         // write the headers
-        ArrayList<Column> columns = table.getColumns();
-        for (int i = 0; i < columns.size(); i++) {
-            writer.write(columns.get(i).getName());
-            if (i < columns.size() - 1) {
+        String[] headers = table.getHeaders();
+        for (int i=0; i< headers.length; i++) {
+            writer.write(headers[i]);
+            if (i < headers.length - 1) {
                 writer.write("\t");
             }
         }
         writer.newLine();
+
+//        ArrayList<Column> columns = table.getColumns();
+//        for (int i = 0; i < columns.size(); i++) {
+//            writer.write(columns.get(i).getName());
+//            if (i < columns.size() - 1) {
+//                writer.write("\t");
+//            }
+//        }
+//        writer.newLine();
 
         // write the rows
         ArrayList<Row> rows = table.getRows();

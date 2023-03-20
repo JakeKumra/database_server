@@ -19,6 +19,7 @@ public class CreateCMD extends DBcmd {
     }
 
     // TODO maybe to break this into two functions?
+    // TODO make sure that if a database or table already exists, error is returned
     public String query(DBServer s) {
         if (isDatabaseCreation == true) {
             File databaseDir = new File(new FileManager().getDbPath() + File.separator + name);
@@ -30,7 +31,7 @@ public class CreateCMD extends DBcmd {
                 return "[OK] Database " + name + "created";
             }
         } else {
-            String currDatabaseName = s.getCurrentDatabase().getDatabaseName();
+            String currDatabaseName = s.getCurrDbName();
             String path = new FileManager().getDbPath() + File.separator + currDatabaseName;
             File tableFile = new File (path + File.separator + name);
             if (attributes == null) {
