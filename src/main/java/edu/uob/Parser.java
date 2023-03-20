@@ -86,31 +86,45 @@ public class Parser {
         return cmd;
     }
 
+    // TODO this parser function is broken
     private List<String> parseAttListSelect() throws ParseException {
+
         List<String> attributeList = new ArrayList<>();
         boolean firstAttribute = true;
+
         while (true) {
             String attributeName = getNextToken();
+
             if (!attributeName.matches("[a-zA-Z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9]*)?")) {
                 throw new ParseException("Invalid attribute name: " + attributeName, pos);
             }
+
             attributeList.add(attributeName);
+
+            // TODO check if this is actually correct
             if (getNextToken().equals(";")) {
                 break;
-            } else if (firstAttribute && !getCurrentToken().equals(",")) {
+            } else {
+                pos--;
+            }
+
+            if (firstAttribute && !getCurrentToken().equals(",")) {
                 break;
-            } else if (!getCurrentToken().equals(",")) {
+            } else {
+                pos--;
+            }
+
+            if (!getCurrentToken().equals(",")) {
+                pos--;
                 throw new ParseException("Expected comma between attribute names", pos);
             }
+
             firstAttribute = false;
         }
         return attributeList;
     }
 
-
-
-
-            private InsertCMD parseInsert() throws ParseException {
+    private InsertCMD parseInsert() throws ParseException {
 
         // Consume the "INSERT INTO" keywords
         if (!getNextToken().equalsIgnoreCase("INSERT") || !getNextToken().equalsIgnoreCase("INTO")) {
@@ -192,11 +206,6 @@ public class Parser {
             return token;
         }
     }
-
-
-
-
-
 
     private CreateCMD parseCreate () throws ParseException {
 

@@ -75,25 +75,45 @@ public class SelectCMD extends DBcmd {
         if (!new File(tablePath).exists()) {
             return "[ERROR] no table exists within " + s.getCurrDbName();
         }
-
         // check that the columns exist and if they don't then return error
-
         // if it does then pull it into memory
         // get the table within current db from memory
         try {
             Table tableToQuery = s.parseFileToTable(tableName, s.getCurrDbName());
-            // if the wildcard is present
-            if (this.hasWildcard() == true) {
 
-                return "[OK]" + " \n" + tableToQuery.convertTableToString();
-            } else if (!this.getWhereQueryStatus()) {
-                // no wildcard and no where query
-                // process command
+            if (this.getWhereQueryStatus() == true) {
+
+                if (this.hasWildcard() == true) {
+                    // provide all information from WHERE query
+                } else {
+                    // process attributes in accordance with the WHERE query
+
+                    // TODO refactor to make this dry
+                    for (int i=0; i<attributeList.size(); i++) {
+                        if (!tableToQuery.attributeFound(attributeList.get(i))) {
+                            return "[ERROR]" + " attribute " + attributeList.get(i) + " not found in table";
+                        }
+                    }
+                }
             } else {
-                // no wildcard but there is a where query
-                //process command
+                if (this.hasWildcard() == true) {
+                    return "[OK]" + " \n" + tableToQuery.convertTableToString();
+                } else {
+                    // no WHERE case, no wildcard, but contains attributes
+                    // TODO refactor to make this dry
+                   String response = new String("[OK]" + "\n");
+                    for (int i=0; i<attributeList.size(); i++) {
+                        if (!tableToQuery.attributeFound(attributeList.get(i))) {
+                            return "[ERROR]" + " attribute " + attributeList.get(i) + " not found in table";
+                        }
+                        ArrayList<String> columns = tableToQuery.getOneColumn(attributeList.get(i));
+                        for (String col : columns) {
+                            response += col + "\n";
+                        }
+                    }
+                    return response;
+                }
             }
-
         } catch (IOException e) {
             e.printStackTrace();
             System.out.println("Unable to load table " + tableName + " from file system");

@@ -99,7 +99,9 @@ public class ExampleDBTests {
 //        sendCommandToServer("INSERT INTO exampleTable VALUES ('Bob', 35, FALSE);");
 //        System.out.println(sendCommandToServer("INSERT INTO exampleTable VALUES ('Bob', 35, FALSE);"));
 //        sendCommandToServer("INSERT INTO marks VALUES ('Clive', 20, FALSE);");
-        String response = sendCommandToServer("SELECT * FROM exampleTable;");
+//        String response = sendCommandToServer("SELECT * FROM exampleTable;");
+        // String response = sendCommandToServer("SELECT * FROM exampleTable;");
+        String response = sendCommandToServer("SELECT sam FROM exampleTable;");
         System.out.println("Response: " + response);
 //        assertTrue(response.contains("[OK]"), "A valid query was made, however an [OK] tag was not returned");
 //        assertFalse(response.contains("[ERROR]"), "A valid query was made, however an [ERROR] tag was returned");
