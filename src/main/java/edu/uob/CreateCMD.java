@@ -1,6 +1,8 @@
 package edu.uob;
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Paths;
+import java.io.FileWriter;
 import java.util.List;
 
 public class CreateCMD extends DBcmd {
@@ -16,10 +18,10 @@ public class CreateCMD extends DBcmd {
         this.isDatabaseCreation = isDatabaseCreation;
     }
 
+    // TODO maybe to break this into two functions?
     public String query(DBServer s) {
-
         if (isDatabaseCreation == true) {
-            File databaseDir = new File(new FileManager().getDatabasesPath() + File.separator + name);
+            File databaseDir = new File(new FileManager().getDbPath() + File.separator + name);
             if (databaseDir.exists()) {
                 return "[ERROR] Database " + name + " already exists.";
             } else if (!databaseDir.mkdir()) {
@@ -28,24 +30,38 @@ public class CreateCMD extends DBcmd {
                 return "[OK] Database " + name + "created";
             }
         } else {
+            String currDatabaseName = s.getCurrentDatabase().getDatabaseName();
+            String path = new FileManager().getDbPath() + File.separator + currDatabaseName;
+            File tableFile = new File (path + File.separator + name);
             if (attributes == null) {
-                // create table with no attributes
-                // create a file inside current database with name corresponding to name
-                Database currDatabase = s.getCurrentDatabase();
-                String currDatabaseName = currDatabase.getDatabaseName();
-                // check to see that it's within the file system
-                
-
-
+                if (!tableFile.exists()) {
+                    try {
+                        tableFile.createNewFile();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        System.out.println("Error: unable to create new table file inside CreateCMD");
+                    }
+                }
             } else {
-                // create table with attributes
+                // create table file with attributes at the first line with id at the start and each one being tab separated
+                if (!tableFile.exists()) {
+                    try {
+                        tableFile.createNewFile();
+                        // write attributes to the first line of the table file
+                        FileWriter writer = new FileWriter(tableFile);
+                        writer.write("id\t");
+                        for (String attribute : attributes) {
+                            writer.write(attribute + "\t");
+                        }
+                        writer.write("\n");
+                        writer.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        System.out.println("Error: unable to create new table file inside CreateCMD");
+                    }
+                }
             }
-
-
-            return "Inside the Create table space";
+            return "[OK] TABLE " + name + " created";
         }
-
-
-        // return "Response...";
     }
 }

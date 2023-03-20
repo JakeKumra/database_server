@@ -10,7 +10,7 @@ public class FileManager {
         storageFolderPath = Paths.get("databases").toAbsolutePath().toString();
     }
 
-    public String getDatabasesPath() {
+    public String getDbPath() {
         return storageFolderPath;
     }
 

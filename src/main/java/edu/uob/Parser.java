@@ -22,8 +22,8 @@ public class Parser {
             cmd = parseUse();
         } else if (token.equalsIgnoreCase("CREATE")) {
             cmd = parseCreate();
-//        } else if (token.equalsIgnoreCase("INSERT")) {
-//            cmd = parseInsert();
+        } else if (token.equalsIgnoreCase("INSERT")) {
+            cmd = parseInsert();
 //        } else if (token.equalsIgnoreCase("SELECT")) {
 //            cmd = parseSelect();
 //        } else if (token.equalsIgnoreCase("UPDATE")) {
@@ -41,6 +41,94 @@ public class Parser {
         }
         return cmd;
     }
+
+    private InsertCMD parseInsert() throws ParseException {
+
+        // Consume the "INSERT INTO" keywords
+        if (!getNextToken().equalsIgnoreCase("INSERT") || !getNextToken().equalsIgnoreCase("INTO")) {
+            throw new ParseException("Expected INSERT INTO keywords", pos);
+        }
+
+        // Get the table name
+        String tableName = getNextToken();
+        if (!tableName.matches("[a-zA-Z][a-zA-Z0-9]*")) {
+            throw new ParseException("Invalid table name", pos);
+        }
+
+        // Consume the "VALUES" keyword and the opening parenthesis
+        if (!getNextToken().equalsIgnoreCase("VALUES") || !getNextToken().equals("(")) {
+            throw new ParseException("Expected VALUES keyword and opening parenthesis", pos);
+        }
+
+        // Parse the list of values
+        List<String> values = parseValueList();
+
+        // Consume the closing parenthesis and semicolon
+        if (!getNextToken().equals(")") || !getNextToken().equals(";")) {
+            throw new ParseException("Expected closing parenthesis and semicolon", pos);
+        }
+
+        // Create and return the InsertCMD object
+        return new InsertCMD(tableName, values);
+    }
+
+    private List<String> parseValueList() throws ParseException {
+        List<String> values = new ArrayList<>();
+
+        while (true) {
+            String value = parseValue();
+
+            // Add the value to the list
+            values.add(value);
+
+            // Check if there are more values
+            String nextToken = getNextToken();
+            if (nextToken.equals(")")) {
+                // End of value list
+                pos--;
+                break;
+            } else if (!nextToken.equals(",")) {
+                throw new ParseException("Expected comma or closing parenthesis in value list", pos);
+            }
+        }
+
+        return values;
+    }
+
+    private String parseValue() throws ParseException {
+        String token = getNextToken();
+        if (token.equals("NULL")) {
+            return "NULL";
+        } else if (token.equalsIgnoreCase("TRUE") || token.equalsIgnoreCase("FALSE")) {
+            return "TRUE";
+        } else if (token.startsWith("'")) {
+            // String literal
+            if (token.endsWith("'")) {
+                // String literal with no embedded quotes
+                return token.substring(1, token.length() - 1);
+            } else {
+                // String literal with embedded quotes
+                StringBuilder sb = new StringBuilder();
+                sb.append(token.substring(1));
+                while (true) {
+                    String nextToken = getNextToken();
+                    sb.append(" ");
+                    sb.append(nextToken);
+                    if (nextToken.endsWith("'")) {
+                        return sb.toString().substring(0, sb.length() - 1);
+                    }
+                }
+            }
+        } else {
+            // Numeric literal
+            return token;
+        }
+    }
+
+
+
+
+
 
     private CreateCMD parseCreate () throws ParseException {
 
@@ -144,6 +232,7 @@ public class Parser {
 
 
     private UseCMD parseUse() throws ParseException {
+
         // Consume the "USE" keyword
         if (!getNextToken().equalsIgnoreCase("USE")) {
             throw new ParseException("Expected USE keyword", pos);
@@ -182,12 +271,7 @@ public class Parser {
 //        return cmd;
 //    }
 //
-//    private InsertCMD parseInsert() throws ParseException {
-//        InsertCMD cmd = new InsertCMD();
-//        // Parse the rest of the command here
-//        // Set the attributes of the InsertCMD object based on the tokens
-//        return cmd;
-//    }
+
 //
 //    private UpdateCMD parseUpdate() throws ParseException {
 //        UpdateCMD cmd = new UpdateCMD();

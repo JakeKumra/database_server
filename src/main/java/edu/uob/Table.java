@@ -5,12 +5,22 @@ import java.util.List;
 public class Table {
     private String name;
     private ArrayList<Column> columns;
+
+    private String[] headers;
     private ArrayList<Row> rows;
 
     public Table(String name) {
         this.name = name;
         this.columns = new ArrayList<>();
         this.rows = new ArrayList<>();
+    }
+
+    public void setHeaders(String[] headers) {
+        this.headers = headers;
+    }
+
+    public String[] getHeaders() {
+        return headers;
     }
 
     public void addColumn(Column column) {

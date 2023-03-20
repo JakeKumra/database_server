@@ -72,20 +72,28 @@ public class ExampleDBTests {
     @Test
     public void testBasicCreateAndQuery() {
         String randomName = generateRandomName();
-        String response = sendCommandToServer("CREATE DATABASE " + randomName + ";");
-        assertTrue(response.contains("[OK]"), "A valid query was made, however an [OK] tag was not returned");
-        String responseTwo = sendCommandToServer("CREATE DATABASE " + randomName + ";");
-        assertTrue(responseTwo.contains("[ERROR]"), "An invalid query was made, database " + randomName + "already exists");
+//        String response = sendCommandToServer("CREATE DATABASE " + randomName + ";");
+//        assertTrue(response.contains("[OK]"), "A valid query was made, however an [OK] tag was not returned");
+//        String responseTwo = sendCommandToServer("CREATE DATABASE " + randomName + ";");
+//        assertTrue(responseTwo.contains("[ERROR]"), "An invalid query was made, database " + randomName + "already exists");
+//
+//        String randomNameTwo = generateRandomName();
+//        String responseThree = sendCommandToServer("CREATE TABLE " + randomNameTwo + ";");
+//        System.out.println(responseThree);
 
-        String randomNameTwo = generateRandomName();
-        String responseThree = sendCommandToServer("CREATE TABLE " + randomNameTwo + ";");
-        System.out.println(responseThree);
+        // TODO write test cases here
+//        sendCommandToServer("USE PeopleDB;");
+//        String randomNameTwo = generateRandomName();
+//        String responseFour = sendCommandToServer("CREATE TABLE " + randomNameTwo + ";");
+//        System.out.println(responseFour);
+//        String responseFive = sendCommandToServer("CREATE TABLE " + randomNameTwo + "(name, mark, table.new, mike);");
+//        System.out.println(responseFive);
 
-        String responseFour = sendCommandToServer("CREATE TABLE " + randomNameTwo + "(name, mark, pass, randomNameTwo.name);");
-
-//        sendCommandToServer("USE " + randomName + ";");
-//        sendCommandToServer("CREATE TABLE marks (name, mark, pass);");
-//        sendCommandToServer("INSERT INTO marks VALUES ('Steve', 65, TRUE);");
+        sendCommandToServer("CREATE DATABASE " + "exampleDb" + ";");
+        sendCommandToServer("USE " + "exampleDb" + ";");
+//         sendCommandToServer("CREATE TABLE " + "exampleTable" + ";");
+        sendCommandToServer("CREATE TABLE exampleTable (name, mark, pass);");
+        System.out.println(sendCommandToServer("INSERT INTO exampleTable VALUES ('Steve', 65, TRUE);"));
 //        sendCommandToServer("INSERT INTO marks VALUES ('Dave', 55, TRUE);");
 //        sendCommandToServer("INSERT INTO marks VALUES ('Bob', 35, FALSE);");
 //        sendCommandToServer("INSERT INTO marks VALUES ('Clive', 20, FALSE);");

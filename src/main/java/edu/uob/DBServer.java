@@ -31,7 +31,7 @@ public class DBServer {
     */
     public DBServer() {
         storageFolderPath = Paths.get("databases").toAbsolutePath().toString();
-        this.currentDatabase = null;
+
         try {
             // TODO make sure that the databases folder is created at the beginning
             // Create the database storage folder if it doesn't already exist !
@@ -52,7 +52,7 @@ public class DBServer {
 
     // TODO implement or remove this function / change name
     public Database getDatabaseFromFile(String dbName) {
-        String databasesPath = new FileManager().getDatabasesPath();
+        String databasesPath = new FileManager().getDbPath();
 
         File dbFolder = new File(databasesPath, dbName);
         if (dbFolder.exists() && dbFolder.isDirectory()) {
@@ -82,13 +82,18 @@ public class DBServer {
     public Database getCurrentDatabase() {
         return this.currentDatabase;
     }
+
+    public String getCurrDbName() {
+        return this.currentDatabase.getDatabaseName();
+    }
+
     public void setCurrentDatabase(Database dbName) {
         this.currentDatabase = dbName;
     }
 
     public Table parseFileToTable(String fileName, String dbName) throws IOException {
 
-        String filePath = storageFolderPath + File.separator + dbName + File.separator + fileName + ".tab";
+        String filePath = storageFolderPath + File.separator + dbName + File.separator + fileName;
 
         BufferedReader reader = new BufferedReader(new FileReader(filePath));
         String line;
@@ -118,6 +123,7 @@ public class DBServer {
 
         // create a table with the parsed headers and rows
         Table table = new Table(fileName);
+        table.setHeaders(headers);
         for (String header : headers) {
             Column column = new Column(header);
             table.addColumn(column);
