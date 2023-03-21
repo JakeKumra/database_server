@@ -3,10 +3,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Table {
-    private String name;
-    private ArrayList<Column> columns;
+    private final String name;
+    private final ArrayList<Column> columns;
     private String[] headers;
-    private ArrayList<Row> rows;
+    private final ArrayList<Row> rows;
 
     public Table(String name) {
         this.name = name;
@@ -46,23 +46,23 @@ public class Table {
         return column;
     }
 
-
-    public ArrayList<String> getOneColumn(String attributeName) {
-        // TODO can change to ArrayList of Datavalues if necessary
-        ArrayList<String> columnList = new ArrayList<>();
-        columnList.add(attributeName);
-        ArrayList<Row> allRows = getRows();
-        for (int i=0; i<allRows.size(); i++) {
-            int rowLength = allRows.get(i).getRowLength();
-            ArrayList<DataValue> allValuesInRow = allRows.get(i).getValues();
-            for (int j=0; j<rowLength; j++) {
-                if (allValuesInRow.get(j).getHeader().equals(attributeName)) {
-                    columnList.add(allValuesInRow.get(j).getValue());
-                }
-            }
-        }
-        return columnList;
-    }
+    // TODO delete if necessary
+//    public ArrayList<String> getOneColumn(String attributeName) {
+//        // TODO can change to ArrayList of Datavalues if necessary
+//        ArrayList<String> columnList = new ArrayList<>();
+//        columnList.add(attributeName);
+//        ArrayList<Row> allRows = getRows();
+//        for (int i=0; i<allRows.size(); i++) {
+//            int rowLength = allRows.get(i).getRowLength();
+//            ArrayList<DataValue> allValuesInRow = allRows.get(i).getValues();
+//            for (int j=0; j<rowLength; j++) {
+//                if (allValuesInRow.get(j).getHeader().equals(attributeName)) {
+//                    columnList.add(allValuesInRow.get(j).getValue());
+//                }
+//            }
+//        }
+//        return columnList;
+//    }
 
     public int getColumnIndex(String columnName) {
         int columnIndex = -1;
@@ -77,16 +77,16 @@ public class Table {
 
 
     // TODO delete this if unused?
-    public boolean attributeFound (String attribute) {
-        String [] headersList = this.getHeaders();
-        boolean attributeFound = false;
-        for (int i=0; i< getHeaders().length; i++) {
-            if (headersList[i].equals(attribute)) {
-                attributeFound = true;
-            }
-        }
-        return attributeFound;
-    }
+//    public boolean attributeFound (String attribute) {
+//        String [] headersList = this.getHeaders();
+//        boolean attributeFound = false;
+//        for (int i=0; i< getHeaders().length; i++) {
+//            if (headersList[i].equals(attribute)) {
+//                attributeFound = true;
+//            }
+//        }
+//        return attributeFound;
+//    }
 
     public String[] getHeaders() {
         return headers;

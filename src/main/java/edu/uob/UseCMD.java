@@ -1,14 +1,19 @@
 package edu.uob;
-import java.util.ArrayList;
 
 public class UseCMD extends DBcmd {
-    private String dbName;
+    private final String dbName;
     public UseCMD(String dbName) {
+        super();
         this.dbName = dbName;
+        this.parseError = false;
     }
 
     @Override
     public String query(DBServer s) {
+        if (parseError) {
+            return errorMessage;
+        }
+
         Database dbFromFile = s.getDatabaseFromFile(dbName);
         // Check if the database exists
         if (dbFromFile == null) {

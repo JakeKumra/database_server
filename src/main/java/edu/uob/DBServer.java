@@ -80,7 +80,11 @@ public class DBServer {
     }
 
     public String getCurrDbName() {
-        return this.currentDatabase.getDatabaseName();
+        if (this.currentDatabase != null) {
+            return this.currentDatabase.getDatabaseName();
+        } else {
+            return null;
+        }
     }
 
     public void setCurrentDatabase(Database dbName) {

@@ -5,8 +5,8 @@ import java.util.List;
 
 public class Column {
 
-    private String name;
-    private List<DataValue> values;
+    private final String name;
+    private final List<DataValue> values;
 
     public Column(String name) {
         this.name = name;
@@ -20,10 +20,4 @@ public class Column {
     public void addValue(DataValue value) {
         values.add(value);
     }
-
-    public List<DataValue> getValues() {
-        return values;
-    }
-
-    // Other methods as needed...
 }

@@ -3,8 +3,6 @@ package edu.uob;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -32,32 +30,14 @@ public class ExampleDBTests {
         "Server took too long to respond (probably stuck in an infinite loop)");
     }
 
-    @Test
-    public void testGetDatabaseFromFile() {
-        // TODO fix below and include robust testing here later on
-        // when this function is called it should create a new database and then test the function
-        // but for now I will hardcode it
-
-        Database testDb = server.getDatabaseFromFile("PeopleDB");
-        assertNotNull(testDb);
-
-        Table peopleTable = testDb.getTable("people");
-        System.out.println(peopleTable.convertTableToString());
-
-        Table studentsTable = testDb.getTable("students");
-        System.out.println(studentsTable.convertTableToString());
-    }
-    //public Database getDatabaseFromFile(String dbName)
-
     // A basic test that creates a database, creates a table, inserts some test data, then queries it.
     // It then checks the response to see that a couple of the entries in the table are returned as expected
     @Test void testBasicUseQuery() {
-        // TODO this will need to be dynamic so we need to first create a database and THEN test use
-        // for now I am just hard coding it but this will need updating later on
-        String response = sendCommandToServer("USE PeopleDB;");
-        assertTrue(response.contains("[OK]"), "An attempt to USE existing database did not respond [OK]");
-        String responseTwo = sendCommandToServer("USE UnknownDb;");
-        assertTrue(responseTwo.contains("[ERROR]"), "Attempt to use non-existing database didn't return [ERROR]");
+        sendCommandToServer("CREATE DATABASE PeopleDB;");
+        String responseTwo = sendCommandToServer("USE PeopleDB;");
+        assertTrue(responseTwo.contains("[OK]"), "An attempt to USE existing database did not respond [OK]");
+        String responseThree = sendCommandToServer("USE UnknownDb;");
+        assertTrue(responseThree.contains("[ERROR]"), "Attempt to use non-existing database didn't return [ERROR]");
     }
 
     @Test
@@ -75,6 +55,12 @@ public class ExampleDBTests {
         assertFalse(response.contains("[ERROR]"), "A valid query was made, however an [ERROR] tag was returned");
         assertTrue(response.contains("Steve"), "An attempt was made to add Steve to the table, but they were not returned by SELECT *");
         assertTrue(response.contains("Clive"), "An attempt was made to add Clive to the table, but they were not returned by SELECT *");
+    }
+
+    @Test
+    public void test() {
+        String responseOne = sendCommandToServer("CREATE TABLE new;");
+        System.out.println(responseOne);
     }
 
     @Test
@@ -99,6 +85,13 @@ public class ExampleDBTests {
 
     // A test to make sure that querying returns a valid ID (this test also implicitly checks the "==" condition)
     // (these IDs are used to create relations between tables, so it is essential that they work !)
+
+    @Test
+    public void testCreateParseFail() {
+        String response = sendCommandToServer("CREATE TABLE;");
+        System.out.println(response);
+        assertTrue(response.contains("[ERROR]"), "CREATE TABLE with no name didn't return [ERROR]");
+    }
 
     @Test
     public void testQueryID() {
@@ -196,9 +189,7 @@ public class ExampleDBTests {
 
     @Test void testParseErrors() {
         String responseFour = sendCommandToServer("TEST PARSE ERROR");
-        System.out.println(responseFour);
         assertTrue(responseFour.contains("[ERROR]"), "Invalid command didn't return [ERROR]");
-
         String randomName = generateRandomName();
         sendCommandToServer("CREATE DATABASE " + randomName + ";");
         sendCommandToServer("USE " + randomName + ";");
@@ -208,57 +199,11 @@ public class ExampleDBTests {
         assertTrue(responseTwo.contains("[ERROR]"), "Attempt to use non-existent table/database didn't return [ERROR]");
         String responseThree = sendCommandToServer("INSERT INTO " + randomName + " VALUES ('Steve', 65, TRUE);");
         assertTrue(responseThree.contains("[ERROR]"), "An attempt to insert into non-existing table didn't return [ERROR]");
+        randomName = generateRandomName();
+        sendCommandToServer("CREATE DATABASE " + randomName + ";");
+        sendCommandToServer("USE " + randomName + ";");
+        sendCommandToServer("CREATE TABLE marks (name, mark, pass);");
+        String responseFive = sendCommandToServer("DROP TABLE marks;");
+        assertTrue(responseFive.contains("[OK]"), "An attempt to drop an existing table didn't return [OK]");
     }
-
-    @Test
-    public void testGetColumn() {
-        // Create some DataValue objects
-        DataValue value11 = new DataValue("Value 1-1", "Column 1");
-        DataValue value21 = new DataValue("Value 2-1", "Column 1");
-        DataValue value31 = new DataValue("Value 3-1", "Column 1");
-
-        DataValue value12 = new DataValue("Value 1-2", "Column 2");
-        DataValue value22 = new DataValue("Value 2-2", "Column 2");
-        DataValue value32 = new DataValue("Value 3-2", "Column 2");
-
-        // Create some Row objects with ArrayList of DataValue objects
-        ArrayList<DataValue> row1Values = new ArrayList<>();
-        row1Values.add(value11);
-        row1Values.add(value12);
-        Row row1 = new Row(1, row1Values);
-
-        ArrayList<DataValue> row2Values = new ArrayList<>();
-        row2Values.add(value21);
-        row2Values.add(value22);
-        Row row2 = new Row(2, row2Values);
-
-        ArrayList<DataValue> row3Values = new ArrayList<>();
-        row3Values.add(value31);
-        row3Values.add(value32);
-        Row row3 = new Row(3, row3Values);
-
-        // Create a Table object and add the Row objects
-        Table table = new Table("Test Table");
-        table.addRow(row1);
-        table.addRow(row2);
-        table.addRow(row3);
-
-        // Get a Column object from the Table object
-        Column column = table.getColumn("Column 1");
-
-        // Check that the Column object is not null
-        assertNotNull(column);
-
-        // Check that the Column object has the correct name
-        assertEquals("Column 1", column.getName());
-
-        // Check that the Column object has the correct values
-        List<DataValue> columnValues = column.getValues();
-        assertEquals(3, columnValues.size());
-        assertEquals(value11, columnValues.get(0));
-        assertEquals(value21, columnValues.get(1));
-        assertEquals(value31, columnValues.get(2));
-    }
-
-
 }

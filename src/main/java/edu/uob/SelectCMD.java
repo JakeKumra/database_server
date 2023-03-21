@@ -1,24 +1,22 @@
 package edu.uob;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class SelectCMD extends DBcmd {
     private List<String> attributeList;
-
     private boolean whereQuery;
     private String tableName;
-
     private Condition condition;
 
     public SelectCMD() {
+        super();
         this.attributeList = new ArrayList<>();
         this.tableName = null;
         this.whereQuery = false;
         this.condition = null;
+        this.parseError = false;
     }
 
     public void setWhereQuery(boolean bool) {
@@ -68,6 +66,10 @@ public class SelectCMD extends DBcmd {
     // TODO maybe try to split this function up as it's too long
     @Override
     public String query(DBServer s) {
+        if (parseError) {
+            return errorMessage;
+        }
+
         try {
             if (s.getCurrentDatabase() == null) {
                 return "[ERROR] no database has been selected";

@@ -3,15 +3,12 @@ package edu.uob;
 import java.io.File;
 
 public class DropCMD extends DBcmd {
+
     private String databaseName;
     private String tableName;
 
-    private String errorMessage;
-
-    private boolean parseError;
-
     public DropCMD() {
-        this.parseError = false;
+        super();
         this.databaseName = null;
         this.tableName = null;
     }
@@ -34,35 +31,33 @@ public class DropCMD extends DBcmd {
 
     @Override
     public String query(DBServer s) {
-
         if (parseError) {
             return errorMessage;
         }
         if (databaseName != null) {
-            FileManager FM = new FileManager();
-            File databasesPath = new File (FM.getDbPath());
-            File[] files = databasesPath.listFiles();
-            if (files != null) {
-                for (File file : files) {
-                    if (file.getName().equals(databaseName)) {
-                        // File exists, remove it
-                        boolean deleted = file.delete();
-                        if (deleted) {
-                            if (s.getCurrDbName().equals(databaseName)) {
-                                s.setCurrentDatabase(null);
-                            }
-                            return "[OK]" + " database " + databaseName + " has been removed";
-                        } else {
-                            return "[ERROR]" + " database " + databaseName + " hasn't been removed";
-                        }
-                    }
+            File dbFile = new File(new FileManager().getDbPath(), databaseName);
+            if (dbFile.exists() && dbFile.delete()) {
+                if (s.getCurrDbName().equals(databaseName)) {
+                    s.setCurrentDatabase(null);
                 }
+                return "[OK] database " + databaseName + " has been removed";
+            } else {
+                return "[ERROR] database " + databaseName + " can't be found or removed";
             }
-            return "[ERROR]" + " database " + databaseName + " can't be found";
         } else if (tableName != null) {
-                // remove table file from database (which one)?
+            Database currDb = s.getCurrentDatabase();
+            if (currDb != null) {
+                File tableFile = new File(new FileManager().getDbPath() + File.separator + s.getCurrDbName(), tableName);
+                if (tableFile.exists() && tableFile.delete()) {
+                    return "[OK] " + tableName + " has been deleted from database";
+                } else {
+                    return "[ERROR] table " + tableName + " not found in database / can't be removed";
+                }
+            } else {
+                return "[ERROR] no database has been selected";
+            }
         } else {
-            return "[ERROR]" + " Invalid DROP command.";
+            return "[ERROR] Invalid DROP command.";
         }
-        return "";
-}}
+    }
+}

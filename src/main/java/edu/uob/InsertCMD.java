@@ -10,12 +10,29 @@ public class InsertCMD extends DBcmd {
     List<String> values;
 
     public InsertCMD (String name, List<String> values) {
+        super();
         this.tableName = name;
         this.values = values;
     }
 
+    private void addNewRow(Table table, int id) {
+        String[] tableHeaders = table.getHeaders();
+        ArrayList<DataValue> valuesInRow = new ArrayList<>();
+        DataValue firstValueInRow = new DataValue(Integer.toString(id), "id");
+        valuesInRow.add(firstValueInRow);
+        for (int i = 0; i < values.size(); i++) {
+            DataValue nextValueInRow = new DataValue(values.get(i), tableHeaders[i]);
+            valuesInRow.add(nextValueInRow);
+        }
+        Row newRow = new Row(id, valuesInRow);
+        table.addRow(newRow);
+    }
+
     @Override
     public String query(DBServer s) {
+        if (parseError) {
+            return errorMessage;
+        }
         if (s.getCurrentDatabase() == null) {
             return "[ERROR] No database has been selected to use";
         }
@@ -48,18 +65,4 @@ public class InsertCMD extends DBcmd {
             return "[ERROR] unable to load table from database";
         }
     }
-
-    private void addNewRow(Table table, int id) {
-        String[] tableHeaders = table.getHeaders();
-        ArrayList<DataValue> valuesInRow = new ArrayList<>();
-        DataValue firstValueInRow = new DataValue(Integer.toString(id), "id");
-        valuesInRow.add(firstValueInRow);
-        for (int i = 0; i < values.size(); i++) {
-            DataValue nextValueInRow = new DataValue(values.get(i), tableHeaders[i]);
-            valuesInRow.add(nextValueInRow);
-        }
-        Row newRow = new Row(id, valuesInRow);
-        table.addRow(newRow);
-    }
-
 }
