@@ -3,6 +3,7 @@ package edu.uob;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class SelectCMD extends DBcmd {
@@ -10,13 +11,14 @@ public class SelectCMD extends DBcmd {
 
     private boolean whereQuery;
     private String tableName;
-    // private Condition condition;
+
+    private Condition condition;
 
     public SelectCMD() {
         this.attributeList = new ArrayList<>();
         this.tableName = null;
         this.whereQuery = false;
-        // this.condition = null;
+        this.condition = null;
     }
 
     public void setWhereQuery(boolean bool) {
@@ -27,10 +29,6 @@ public class SelectCMD extends DBcmd {
         return this.whereQuery;
     }
 
-    public List<String> getAttributeList() {
-        return attributeList;
-    }
-
     public String getTableName() {
         return tableName;
     }
@@ -39,13 +37,13 @@ public class SelectCMD extends DBcmd {
         this.tableName = tableName;
     }
 
-//    public Condition getCondition() {
-//        return condition;
-//    }
-//
-//    public void setCondition(Condition condition) {
-//        this.condition = condition;
-//    }
+    public void setCondition(Condition condition) {
+        this.condition = condition;
+    }
+
+    public Condition getCondition() {
+        return condition;
+    }
 
     public void setAttributeList(List<String> attributeList) {
         this.attributeList = attributeList;
@@ -63,62 +61,82 @@ public class SelectCMD extends DBcmd {
         return this.attributeList.size() == 1 && this.attributeList.get(0).equals("*");
     }
 
+    public boolean hasAttribute(String attributeName) {
+        return this.attributeList.contains(attributeName);
+    }
+
+    // TODO maybe try to split this function up as it's too long
     @Override
     public String query(DBServer s) {
-
-        if (s.getCurrentDatabase() == null) {
-            return "[ERROR] no database has been selected";
-        }
-
-        FileManager FM = new FileManager();
-        String tablePath = FM.getDbPath() + File.separator + s.getCurrDbName() + File.separator + tableName;
-        if (!new File(tablePath).exists()) {
-            return "[ERROR] table " + tableName + " doesn't exist within database " + s.getCurrDbName();
-        }
-        // check that the columns exist and if they don't then return error
-        // if it does then pull it into memory
-        // get the table within current db from memory
         try {
-            Table tableToQuery = s.parseFileToTable(tableName, s.getCurrDbName());
+            if (s.getCurrentDatabase() == null) {
+                return "[ERROR] no database has been selected";
+            }
+            if (!s.getTableNames().contains(this.tableName)) {
+                return "[ERROR] Table " + this.tableName + " does not exist in the database";
+            }
+            Table table = s.parseFileToTable(tableName, s.getCurrDbName());
 
-            if (this.getWhereQueryStatus() == true) {
-
-                if (this.hasWildcard() == true) {
-                    // provide all information from WHERE query
-                } else {
-                    // process attributes in accordance with the WHERE query
-
-                    // TODO refactor to make this dry
-                    for (int i=0; i<attributeList.size(); i++) {
-                        if (!tableToQuery.attributeFound(attributeList.get(i))) {
-                            return "[ERROR]" + " attribute " + attributeList.get(i) + " not found in table";
-                        }
-                    }
-                }
+            // Create a list of rows that match the condition (if present)
+            List<Row> filteredRows;
+            if (whereQuery) {
+                 filteredRows = table.filterRows(this.condition);
             } else {
-                if (this.hasWildcard() == true) {
-                    return "[OK]" + " \n" + tableToQuery.convertTableToString();
-                } else {
-                    // no WHERE case, no wildcard, but contains attributes
-                    // TODO refactor to make this dry
-                   String response = new String("[OK]" + "\n");
-                    for (int i=0; i<attributeList.size(); i++) {
-                        if (!tableToQuery.attributeFound(attributeList.get(i))) {
-                            return "[ERROR]" + " attribute " + attributeList.get(i) + " not found in table";
-                        }
-                        ArrayList<String> columns = tableToQuery.getOneColumn(attributeList.get(i));
-                        for (String col : columns) {
-                            response += col + "\n";
-                        }
+                filteredRows = table.getRows();
+            }
+
+            // Check if any rows match the condition
+            if (filteredRows.isEmpty()) {
+                return "[OK] No rows found";
+            }
+
+            // Create a list of columns to display based on attributes or wildcard
+            List<Column> columnsToDisplay;
+            if (hasWildcard()) {
+                // produces a list of all the columns in the table
+                columnsToDisplay = table.getColumns();
+            } else {
+                columnsToDisplay = new ArrayList<>();
+                for (String attributeName : attributeList) {
+                    Column column = table.getColumn(attributeName);
+                    if (column == null) {
+                        return "[ERROR] Column " + attributeName + " does not exist in the table " + this.tableName;
                     }
-                    return response;
+                    columnsToDisplay.add(column);
                 }
             }
+
+            // Create a list of rows to display
+            List<List<String>> rowsToDisplay = new ArrayList<>();
+            for (Row row : filteredRows) {
+                List<String> rowValues = new ArrayList<>();
+
+                for (Column column : columnsToDisplay) {
+                    int columnIndex = table.getColumnIndex(column.getName());
+                    if (columnIndex == -1) {
+                        // handle case where column is not found
+                    } else {
+                        DataValue value = row.getValues().get(columnIndex);
+                        rowValues.add(value.getValue());
+                    }
+                }
+                rowsToDisplay.add(rowValues);
+            }
+
+            // Format the result string
+            StringBuilder resultBuilder = new StringBuilder("[OK]\n");
+            List<String> headerRow = new ArrayList<>();
+            for (Column column : columnsToDisplay) {
+                headerRow.add(column.getName());
+            }
+            resultBuilder.append(String.join("\t", headerRow)).append("\n");
+            for (List<String> rowValues : rowsToDisplay) {
+                resultBuilder.append(String.join("\t", rowValues)).append("\n");
+            }
+            return resultBuilder.toString().trim();
+
         } catch (IOException e) {
             e.printStackTrace();
-            System.out.println("Unable to load table " + tableName + " from file system");
+            return "[ERROR] Failed to retrieve data from database";
         }
-        return "Inside SelectCMD";
-    }
-}
-
+    }}

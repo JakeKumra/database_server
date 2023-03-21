@@ -15,7 +15,7 @@ public class Parser {
 
     public DBcmd parse() throws ParseException {
         DBcmd cmd = null;
-        //String token = getNextToken();
+
         String token = getCurrentToken();
 
         if (token.equalsIgnoreCase("USE")) {
@@ -32,15 +32,103 @@ public class Parser {
 //            cmd = parseAlter();
 //        } else if (token.equalsIgnoreCase("DELETE")) {
 //            cmd = parseDelete();
-//        } else if (token.equalsIgnoreCase("DROP")) {
-//            cmd = parseDrop();
+        } else if (token.equalsIgnoreCase("DROP")) {
+            cmd = parseDrop();
 //        } else if (token.equalsIgnoreCase("JOIN")) {
 //            cmd = parseJoin();
         } else {
-            throw new ParseException("Invalid command: " + token, pos);
+            return new parseFailCMD("[ERROR]" + " invalid command: " + token);
         }
         return cmd;
     }
+//
+//    private UpdateCMD parseUpdate() throws ParseException {
+//        UpdateCMD cmd = new UpdateCMD();
+//        String token = getNextToken();
+//        if (token.equalsIgnoreCase("UPDATE")) {
+//            cmd.setTableName(getNextToken());
+//            token = getNextToken();
+//            if (!token.equalsIgnoreCase("SET")) {
+//                throw new ParseException("Expected SET after table name");
+//            }
+//            List<NameValuePair> nameValuePairs = new ArrayList<>();
+//            token = getNextToken();
+//            while (!token.equalsIgnoreCase("WHERE")) {
+//                String attributeName = token;
+//                token = getNextToken();
+//                if (!token.equals("=")) {
+//                    throw new ParseException("Expected = after attribute name");
+//                }
+//                Value value = parseValue();
+//                nameValuePairs.add(new NameValuePair(attributeName, value));
+//                token = getNextToken();
+//                if (token.equals(",")) {
+//                    token = getNextToken();
+//                } else if (!token.equalsIgnoreCase("WHERE")) {
+//                    throw new ParseException("Expected , or WHERE after name-value pair");
+//                }
+//            }
+//            cmd.setNameValuePairs(nameValuePairs);
+//            Condition condition = parseCondition();
+//            cmd.setCondition(condition);
+//        } else {
+//            throw new ParseException("Expected UPDATE command");
+//        }
+//        return cmd;
+//    }
+
+    private DropCMD parseDrop() throws ParseException {
+        DropCMD cmd = new DropCMD();
+
+        // Verify the first token is "DROP"
+        String token = getNextToken();
+        if (!token.equals("DROP")) {
+            cmd.setParseError();
+            cmd.setErrorMessage("[ERROR] Expected 'DROP' but got '" + token + "'");
+            return cmd;
+        }
+
+        // Verify the second token is "DATABASE" or "TABLE"
+        token = getNextToken();
+        if (!token.equals("DATABASE") && !token.equals("TABLE")) {
+            cmd.setParseError();
+            cmd.setErrorMessage("[ERROR] Expected 'DATABASE' or 'TABLE' but got '" + token + "'");
+            return cmd;
+        }
+        boolean isDatabase = token.equals("DATABASE");
+
+        // Create a new DropCMD object and set its attributes
+        if (isDatabase) {
+            // Verify the next token is the name of the database to be dropped
+            String databaseName = getNextToken();
+            if (databaseName.isEmpty()) {
+                cmd.setParseError();
+                cmd.setErrorMessage("[ERROR] Expected a database name but got an empty string");
+                return cmd;
+            }
+            cmd.setDatabaseName(databaseName);
+        } else {
+            // Verify the next token is the name of the table to be dropped
+            String tableName = getNextToken();
+            if (tableName.isEmpty()) {
+                cmd.setParseError();
+                cmd.setErrorMessage("[ERROR] Expected a table name but got an empty string");
+                return cmd;
+            }
+            cmd.setTableName(tableName);
+        }
+
+        // Verify the final token is ";"
+        token = getNextToken();
+        if (!token.equals(";")) {
+            cmd.setParseError();
+            cmd.setErrorMessage("[ERROR] Expected ';' but got '" + token + "'");
+            return cmd;
+        }
+
+        return cmd;
+    }
+
 
     private SelectCMD parseSelect() throws ParseException {
         SelectCMD cmd = new SelectCMD();
@@ -73,7 +161,7 @@ public class Parser {
         // Check if there's a WHERE clause
         if (getNextToken().equalsIgnoreCase("WHERE")) {
             cmd.setWhereQuery(true);
-            // cmd.setWhere(parseCondition());
+            cmd.setCondition(parseCondition());
         } else {
             pos--;
         }
@@ -86,42 +174,71 @@ public class Parser {
         return cmd;
     }
 
-    // TODO this parser function is broken
     private List<String> parseAttListSelect() throws ParseException {
-
         List<String> attributeList = new ArrayList<>();
-        boolean firstAttribute = true;
-
+        String attributeName = getNextToken();
+        if (!attributeName.matches("[a-zA-Z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9]*)?")) {
+            throw new ParseException("Invalid attribute name: " + attributeName, pos);
+        }
+        attributeList.add(attributeName);
         while (true) {
-            String attributeName = getNextToken();
-
-            if (!attributeName.matches("[a-zA-Z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9]*)?")) {
-                throw new ParseException("Invalid attribute name: " + attributeName, pos);
-            }
-
-            attributeList.add(attributeName);
-
-            // TODO check if this is actually correct
-            if (getNextToken().equals(";")) {
+            String nextToken = getNextToken();
+            if (nextToken.equals("FROM")) {
+                --pos;
                 break;
+            }
+            if (nextToken.equals(";")) {
+                break;
+            } else if (nextToken.equals(",")) {
+                attributeName = getNextToken().trim();
+                if (!attributeName.matches("[a-zA-Z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9]*)?")) {
+                    throw new ParseException("Invalid attribute name: " + attributeName, pos);
+                }
+                attributeList.add(attributeName);
+            } else if (nextToken.matches("=|>|<|>=|<=|!=|LIKE")) {
+                attributeList.add(nextToken);
             } else {
                 pos--;
+                throw new ParseException("Expected comma or semicolon between attribute names", pos);
             }
-
-            if (firstAttribute && !getCurrentToken().equals(",")) {
-                break;
-            } else {
-                pos--;
-            }
-
-            if (!getCurrentToken().equals(",")) {
-                pos--;
-                throw new ParseException("Expected comma between attribute names", pos);
-            }
-
-            firstAttribute = false;
         }
         return attributeList;
+    }
+
+    private Condition parseCondition() throws ParseException {
+        // Check if the condition is a simple attribute-value comparison
+        String firstToken = getNextToken();
+        if (firstToken.matches("[a-zA-Z][a-zA-Z0-9]*(\\.[a-zA-Z][a-zA-Z0-9]*)?")) {
+            String secondToken = getCurrentToken();
+            pos++;
+            if (secondToken.equals("==") || secondToken.equals(">") || secondToken.equals("<") ||
+                    secondToken.equals(">=") || secondToken.equals("<=") || secondToken.equals("!=") ||
+                    secondToken.equalsIgnoreCase("LIKE")) {
+                String thirdToken = getNextToken();
+                if (thirdToken.matches("('.*')|TRUE|FALSE|-?[0-9]+(\\.[0-9]*)?")) {
+                    return new Condition(firstToken, secondToken, thirdToken);
+                }
+            }
+        }
+
+        // Check if the condition is a nested condition
+        if (firstToken.equals("(")) {
+            Condition nestedCondition = parseCondition();
+            // Parse boolean operator and right-hand side of the condition
+            String boolOp = getNextToken();
+            if (boolOp.equalsIgnoreCase("AND") || boolOp.equalsIgnoreCase("OR")) {
+                Condition rightCondition = parseCondition();
+                // Consume the closing parenthesis
+                if (!getNextToken().equals(")")) {
+                    throw new ParseException("Expected closing parenthesis", pos);
+                }
+                return new Condition(nestedCondition, boolOp, rightCondition);
+            } else {
+                throw new ParseException("Invalid boolean operator", pos);
+            }
+        } else {
+            throw new ParseException("Invalid condition", pos);
+        }
     }
 
     private InsertCMD parseInsert() throws ParseException {
@@ -179,10 +296,12 @@ public class Parser {
 
     private String parseValue() throws ParseException {
         String token = getNextToken();
-        if (token.equals("NULL")) {
+        if (token.equalsIgnoreCase("NULL")) {
             return "NULL";
-        } else if (token.equalsIgnoreCase("TRUE") || token.equalsIgnoreCase("FALSE")) {
+        } else if (token.equalsIgnoreCase("TRUE")) {
             return "TRUE";
+        } else if (token.equalsIgnoreCase("FALSE")) {
+            return "FALSE";
         } else if (token.startsWith("'")) {
             // String literal
             if (token.endsWith("'")) {
@@ -334,19 +453,12 @@ public class Parser {
         return new UseCMD(databaseName);
     }
 
+
+
 //    private AlterCMD parseAlter() throws ParseException {
 //        AlterCMD cmd = new AlterCMD();
 //        // Parse the rest of the command here
 //        // Set the attributes of the AlterCMD object based on the tokens
-//        return cmd;
-//    }
-//
-
-//
-//    private UpdateCMD parseUpdate() throws ParseException {
-//        UpdateCMD cmd = new UpdateCMD();
-//        // Parse the rest of the command here
-//        // Set the attributes of the UpdateCMD object based on the tokens
 //        return cmd;
 //    }
 

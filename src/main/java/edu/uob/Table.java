@@ -18,6 +18,35 @@ public class Table {
         this.headers = headers;
     }
 
+    public Column getColumn(String columnName) {
+
+        int columnIndex = -1;
+        for (int i = 0; i < headers.length; i++) {
+            if (headers[i].equals(columnName)) {
+                columnIndex = i;
+                break;
+            }
+        }
+        if (columnIndex == -1) {
+            // Column not found
+            return null;
+        }
+
+        Column column = new Column(columnName);
+
+        for (Row row : rows) {
+            List<DataValue> rowValues = row.getValues();
+            if (columnIndex >= rowValues.size()) {
+                // Invalid row
+                continue;
+            }
+            DataValue columnValue = rowValues.get(columnIndex);
+            column.addValue(columnValue);
+        }
+        return column;
+    }
+
+
     public ArrayList<String> getOneColumn(String attributeName) {
         // TODO can change to ArrayList of Datavalues if necessary
         ArrayList<String> columnList = new ArrayList<>();
@@ -35,8 +64,20 @@ public class Table {
         return columnList;
     }
 
-    public boolean attributeFound (String attribute) {
+    public int getColumnIndex(String columnName) {
+        int columnIndex = -1;
+        for (int i = 0; i < headers.length; i++) {
+            if (headers[i].equals(columnName)) {
+                columnIndex = i;
+                break;
+            }
+        }
+        return columnIndex;
+    }
 
+
+    // TODO delete this if unused?
+    public boolean attributeFound (String attribute) {
         String [] headersList = this.getHeaders();
         boolean attributeFound = false;
         for (int i=0; i< getHeaders().length; i++) {
@@ -69,6 +110,76 @@ public class Table {
 
     public ArrayList<Row> getRows() {
         return rows;
+    }
+
+    public List<Row> filterRows(Condition condition) {
+        List<Row> result = new ArrayList<>();
+        for (Row row : rows) {
+            if (evaluateCondition(row, condition)) {
+                result.add(row);
+            }
+        }
+        return result;
+    }
+
+    private boolean evaluateCondition(Row row, Condition condition) {
+
+        String operator = condition.getOperator();
+        String columnName = condition.getColumn();
+        String conditionValue = removeQuotes(condition.getValue());
+        String columnValue = row.getValueByCol(columnName);
+
+        System.out.println("operator: " + operator + "\n");
+        System.out.println("column: " + columnName + "\n");
+        System.out.println("value: " + conditionValue + "\n");
+        System.out.println("Column value: "+ columnValue);
+
+        // ::=  "==" | ">" | "<" | ">=" | "<=" | "!=" | " LIKE "
+
+        if (condition.isSimpleComparison()) {
+
+            if (operator.equals("<")) {
+                return false;
+//                        columnValue < conditionValue;
+//            } else if (operator.equals("<=")) {
+//                return columnValue <= conditionValue;
+//            } else if (operator.equals(">")) {
+//                return columnValue > conditionValue;
+//            } else if (operator.equals(">=")) {
+//                return columnValue >= conditionValue;
+            } else if (operator.equals("==")) {
+                if (columnValue.equals(conditionValue)) {
+                    return true;
+                }
+            } else if (operator.equals("!=")) {
+                if (!columnValue.equals(conditionValue)) {
+                    return true;
+                }
+            } else {
+                throw new IllegalArgumentException("Invalid operator: " + operator);
+            }
+        } else {
+            boolean leftResult = evaluateCondition(row, condition.getNested());
+            boolean rightResult = evaluateCondition(row, condition.getRight());
+            String boolOp = condition.getBoolOp();
+            switch (boolOp) {
+                case "AND":
+                    return leftResult && rightResult;
+                case "OR":
+                    return leftResult || rightResult;
+                default:
+                    throw new IllegalArgumentException("Invalid boolean operator: " + boolOp);
+            }
+        }
+        return false;
+    }
+
+    public static String removeQuotes(String input) {
+        if (input.startsWith("'") && input.endsWith("'")) {
+            return input.substring(1, input.length() - 1);
+        } else {
+            return input;
+        }
     }
 
     public String convertTableToString() {

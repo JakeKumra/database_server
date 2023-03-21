@@ -18,6 +18,17 @@ public class CreateCMD extends DBcmd {
         this.isDatabaseCreation = isDatabaseCreation;
     }
 
+    boolean duplicateAttFound() {
+        for (int i=0; i<attributes.size(); i++) {
+            for (int j=i+1; j<attributes.size(); j++) {
+                if (attributes.get(i).equals(attributes.get(j))) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     // TODO maybe to break this into two functions?
     // TODO make sure that if a database or table already exists, error is returned
     public String query(DBServer s) {
@@ -40,6 +51,10 @@ public class CreateCMD extends DBcmd {
                 return "[ERROR]" + " table " + name + " already exists within database" + currDatabaseName;
             }
 
+            if (duplicateAttFound()) {
+                return "[ERROR]" + " table " + name + " contains duplicate attributes";
+            }
+
             if (attributes == null) {
                     try {
                         tableFile.createNewFile();
@@ -51,6 +66,9 @@ public class CreateCMD extends DBcmd {
                 // create table file with attributes at the first line with id at the start and each one being tab separated
                 try {
                     tableFile.createNewFile();
+
+
+
                     // write attributes to the first line of the table file
                     FileWriter writer = new FileWriter(tableFile);
                     writer.write("id\t");

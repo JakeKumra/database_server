@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -81,28 +82,19 @@ public class ExampleDBTests {
         String randomName = generateRandomName();
         String responseOne = sendCommandToServer("USE " + randomName + ";");
         assertTrue(responseOne.contains("[ERROR]"), "An attempt to use a non-existent database didn't return [ERROR]");
-
         sendCommandToServer("CREATE DATABASE " + randomName + ";");
         String responseTwo = sendCommandToServer("CREATE DATABASE " + randomName + ";");
         assertTrue(responseTwo.contains("[ERROR]"), "Attempt to create existing database didn't return [ERROR]");
-
         sendCommandToServer("USE " + randomName + ";");
         sendCommandToServer("CREATE TABLE marks (name, mark, pass);");
-
         String responseThree = sendCommandToServer("CREATE TABLE marks (name, mark, pass);");
         assertTrue(responseThree.contains("[ERROR]"), "Attempt to create existing table didn't return [ERROR]");
-
-
-//
-//        sendCommandToServer("INSERT INTO marks VALUES ('Steve', 65, TRUE);");
-//        sendCommandToServer("INSERT INTO marks VALUES ('Dave', 55, TRUE);");
-//        sendCommandToServer("INSERT INTO marks VALUES ('Bob', 35, FALSE);");
-//        sendCommandToServer("INSERT INTO marks VALUES ('Clive', 20, FALSE);");
-//        String response = sendCommandToServer("SELECT * FROM marks;");
-//        assertTrue(response.contains("[OK]"), "A valid query was made, however an [OK] tag was not returned");
-//        assertFalse(response.contains("[ERROR]"), "A valid query was made, however an [ERROR] tag was returned");
-//        assertTrue(response.contains("Steve"), "An attempt was made to add Steve to the table, but they were not returned by SELECT *");
-//        assertTrue(response.contains("Clive"), "An attempt was made to add Clive to the table, but they were not returned by SELECT *");
+        String responseFour = sendCommandToServer("INSERT INTO marks VALUES ('Steve', 65, TRUE, FALSE);");
+        assertTrue(responseFour.contains("[ERROR]"), "Attempt to insert too many values didn't return [ERROR]");
+        String responseFive = sendCommandToServer("INSERT INTO marks VALUES ('Steve', 65);");
+        assertTrue(responseFive.contains("[ERROR]"), "Attempt to insert too few values didn't return [ERROR]");
+        String responseSix = sendCommandToServer("CREATE TABLE students (name, age, gender, name);");
+        assertTrue(responseSix.contains("[ERROR]"), "Duplicate column names didn't return [ERROR]");
     }
 
     // A test to make sure that querying returns a valid ID (this test also implicitly checks the "==" condition)
@@ -115,9 +107,19 @@ public class ExampleDBTests {
         sendCommandToServer("USE " + randomName + ";");
         sendCommandToServer("CREATE TABLE marks (name, mark, pass);");
         sendCommandToServer("INSERT INTO marks VALUES ('Steve', 65, TRUE);");
-        String response = sendCommandToServer("SELECT id FROM marks WHERE name == 'Steve';");
+        sendCommandToServer("INSERT INTO marks VALUES ('John', 89, FALSE);");
+        String responseOne = sendCommandToServer("SELECT name FROM marks;");
+        assertTrue(responseOne.contains("[OK]"), "A valid query was made, however an [OK] tag was not returned");
+        String responseTwo = sendCommandToServer("SELECT id FROM marks;");
+        assertTrue(responseTwo.contains("[OK]"), "A valid query was made, however an [OK] tag was not returned");
+        String responseThree = sendCommandToServer("SELECT id FROM marks WHERE name == 'Steve';");
+        assertTrue(responseThree.contains("[OK]"), "A valid query was made, however an [OK] tag was not returned");
+        assertTrue(responseThree.contains("1"), "A valid query was made, however an [OK] tag was not returned");
+        String responseFour = sendCommandToServer("SELECT id FROM marks WHERE name == 'John';");
+        assertTrue(responseFour.contains("[OK]"), "A valid query was made, however an [OK] tag was not returned");
+        assertTrue(responseFour.contains("2"), "A valid query was made, however an [OK] tag was not returned");
         // Convert multi-lined responses into just a single line
-        String singleLine = response.replace("\n"," ").trim();
+        String singleLine = responseThree.replace("\n"," ").trim();
         // Split the line on the space character
         String[] tokens = singleLine.split(" ");
         // Check that the very last token is a number (which should be the ID of the entry)
@@ -127,6 +129,30 @@ public class ExampleDBTests {
         } catch (NumberFormatException nfe) {
             fail("The last token returned by `SELECT id FROM marks WHERE name == 'Steve';` should have been an integer ID, but was " + lastToken);
         }
+    }
+
+    @Test
+    public void testAdvancedQueryID() {
+        String randomName = generateRandomName();
+        sendCommandToServer("CREATE DATABASE " + randomName + ";");
+        sendCommandToServer("USE " + randomName + ";");
+        sendCommandToServer("CREATE TABLE marks (name, mark, pass);");
+        sendCommandToServer("INSERT INTO marks VALUES ('Steve', 65, TRUE);");
+        sendCommandToServer("INSERT INTO marks VALUES ('Dave', 55, TRUE);");
+        sendCommandToServer("INSERT INTO marks VALUES ('Bob', 35, FALSE);");
+        sendCommandToServer("INSERT INTO marks VALUES ('Clive', 20, FALSE);");
+        String responseOne = sendCommandToServer("SELECT * FROM marks WHERE name != 'Dave';");
+        assertTrue(responseOne.contains("[OK]"), "A valid query was made, however an [OK] tag was not returned");
+        assertTrue(responseOne.contains("Steve"), "A valid query was made, however 'Steve' was not returned");
+        assertTrue(responseOne.contains("Bob"), "A valid query was made, however 'Bob' was not returned");
+        assertTrue(responseOne.contains("Clive"), "A valid query was made, however 'Clive' was not returned");
+        assertFalse(responseOne.contains("Dave"), "A valid query was made, however 'Dave' was returned");
+        String responseTwo = sendCommandToServer("SELECT * FROM marks WHERE pass == TRUE;");
+        assertTrue(responseTwo.contains("[OK]"), "A valid query was made, however an [OK] tag was not returned");
+        assertTrue(responseTwo.contains("Steve"), "A valid query was made, however 'Steve' was not returned");
+        assertTrue(responseTwo.contains("Dave"), "A valid query was made, however 'Dave' tag was not returned");
+        assertFalse(responseTwo.contains("Clive"), "A valid query was made, however 'Clive' was returned'");
+        assertFalse(responseTwo.contains("Bob"), "A valid query was made, however 'Bob' was returned");
     }
 
     // A test to make sure that databases can be reopened after server restart
@@ -144,6 +170,17 @@ public class ExampleDBTests {
         assertTrue(response.contains("Steve"), "Steve was added to a table and the server restarted - but Steve was not returned by SELECT *");
     }
 
+    @Test
+    public void testDropParseError() {
+        String randomName = generateRandomName();
+        sendCommandToServer("CREATE DATABASE " + randomName + ";");
+        sendCommandToServer("USE " + randomName + ";");
+        String response = sendCommandToServer("DROP DTABASE " + randomName + ";");
+        assertTrue(response.contains("[ERROR]"), "Parsing error didn't return [ERROR]");
+        String responseTwo = sendCommandToServer("DROP DTABASE " + randomName + "");
+        assertTrue(responseTwo.contains("[ERROR]"), "Parsing error didn't return [ERROR]");
+    }
+
     // Test to make sure that the [ERROR] tag is returned in the case of an error (and NOT the [OK] tag)
     @Test
     public void testForErrorTag() {
@@ -156,5 +193,72 @@ public class ExampleDBTests {
         assertTrue(response.contains("[ERROR]"), "An attempt was made to access a non-existent table, however an [ERROR] tag was not returned");
         assertFalse(response.contains("[OK]"), "An attempt was made to access a non-existent table, however an [OK] tag was returned");
     }
+
+    @Test void testParseErrors() {
+        String responseFour = sendCommandToServer("TEST PARSE ERROR");
+        System.out.println(responseFour);
+        assertTrue(responseFour.contains("[ERROR]"), "Invalid command didn't return [ERROR]");
+
+        String randomName = generateRandomName();
+        sendCommandToServer("CREATE DATABASE " + randomName + ";");
+        sendCommandToServer("USE " + randomName + ";");
+        String response = sendCommandToServer("DROP DATABASE " + randomName + ";");
+        assertTrue(response.contains("[OK]"), "An attempt was made to access a non-existent table, however an [ERROR] tag was not returned");
+        String responseTwo = sendCommandToServer("USE " + randomName + ";");
+        assertTrue(responseTwo.contains("[ERROR]"), "Attempt to use non-existent table/database didn't return [ERROR]");
+        String responseThree = sendCommandToServer("INSERT INTO " + randomName + " VALUES ('Steve', 65, TRUE);");
+        assertTrue(responseThree.contains("[ERROR]"), "An attempt to insert into non-existing table didn't return [ERROR]");
+    }
+
+    @Test
+    public void testGetColumn() {
+        // Create some DataValue objects
+        DataValue value11 = new DataValue("Value 1-1", "Column 1");
+        DataValue value21 = new DataValue("Value 2-1", "Column 1");
+        DataValue value31 = new DataValue("Value 3-1", "Column 1");
+
+        DataValue value12 = new DataValue("Value 1-2", "Column 2");
+        DataValue value22 = new DataValue("Value 2-2", "Column 2");
+        DataValue value32 = new DataValue("Value 3-2", "Column 2");
+
+        // Create some Row objects with ArrayList of DataValue objects
+        ArrayList<DataValue> row1Values = new ArrayList<>();
+        row1Values.add(value11);
+        row1Values.add(value12);
+        Row row1 = new Row(1, row1Values);
+
+        ArrayList<DataValue> row2Values = new ArrayList<>();
+        row2Values.add(value21);
+        row2Values.add(value22);
+        Row row2 = new Row(2, row2Values);
+
+        ArrayList<DataValue> row3Values = new ArrayList<>();
+        row3Values.add(value31);
+        row3Values.add(value32);
+        Row row3 = new Row(3, row3Values);
+
+        // Create a Table object and add the Row objects
+        Table table = new Table("Test Table");
+        table.addRow(row1);
+        table.addRow(row2);
+        table.addRow(row3);
+
+        // Get a Column object from the Table object
+        Column column = table.getColumn("Column 1");
+
+        // Check that the Column object is not null
+        assertNotNull(column);
+
+        // Check that the Column object has the correct name
+        assertEquals("Column 1", column.getName());
+
+        // Check that the Column object has the correct values
+        List<DataValue> columnValues = column.getValues();
+        assertEquals(3, columnValues.size());
+        assertEquals(value11, columnValues.get(0));
+        assertEquals(value21, columnValues.get(1));
+        assertEquals(value31, columnValues.get(2));
+    }
+
 
 }

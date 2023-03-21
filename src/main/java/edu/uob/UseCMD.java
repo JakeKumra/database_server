@@ -14,8 +14,6 @@ public class UseCMD extends DBcmd {
         if (dbFromFile == null) {
             return "[ERROR] Database " + dbName + " does not exist";
         }
-
-        System.out.println(dbFromFile.getDatabaseName());
         // Set the current database
         s.setCurrentDatabase(dbFromFile);
         return "[OK] Database changed to " + dbName;

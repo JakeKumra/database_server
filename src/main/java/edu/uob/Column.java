@@ -1,7 +1,10 @@
 package edu.uob;
+
 import java.util.ArrayList;
 import java.util.List;
+
 public class Column {
+
     private String name;
     private List<DataValue> values;
 
@@ -24,4 +27,3 @@ public class Column {
 
     // Other methods as needed...
 }
-

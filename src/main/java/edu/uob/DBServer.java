@@ -1,17 +1,13 @@
 package edu.uob;
 
 import java.io.*;
-import java.lang.reflect.Array;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Paths;
 import java.nio.file.Files;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.Arrays;
+
 
 /** This class implements the DB server. */
 public class DBServer {
@@ -39,15 +35,14 @@ public class DBServer {
         }
     }
 
-    // TODO implement or remove this function / change name
+    // TODO check the .tab parts of this I'm not sure about it
     public Database getDatabaseFromFile(String dbName) {
         String databasesPath = new FileManager().getDbPath();
-
         File dbFolder = new File(databasesPath, dbName);
+
         if (dbFolder.exists() && dbFolder.isDirectory()) {
-            // TODO might need to check this function below as used to be two below
+
             Database database = new Database(dbFolder.getName());
-            // Database database = new Database();
             File[] allFilesInDb = dbFolder.listFiles();
             for (File file : allFilesInDb) {
                 if (file.isFile() && file.getName().endsWith(".tab")) {
@@ -70,6 +65,18 @@ public class DBServer {
 
     public Database getCurrentDatabase() {
         return this.currentDatabase;
+    }
+
+    public String getTableNames() {
+        StringBuilder sb = new StringBuilder();
+        FileManager FM = new FileManager();
+        File dbFolder = new File(FM.getDbPath() + File.separator + getCurrDbName());
+        File[] allFiles = dbFolder.listFiles();
+        for (File file : allFiles) {
+            sb.append(file.getName()).append(" ");
+        }
+        String tableNames = sb.toString();
+        return tableNames;
     }
 
     public String getCurrDbName() {
@@ -121,9 +128,7 @@ public class DBServer {
     }
 
     public void parseTableToFile(Table table, String filePath) throws IOException {
-        System.out.println(filePath);
         BufferedWriter writer = new BufferedWriter(new FileWriter(filePath));
-
         // write the headers
         String[] headers = table.getHeaders();
         for (int i=0; i< headers.length; i++) {
@@ -133,15 +138,6 @@ public class DBServer {
             }
         }
         writer.newLine();
-
-//        ArrayList<Column> columns = table.getColumns();
-//        for (int i = 0; i < columns.size(); i++) {
-//            writer.write(columns.get(i).getName());
-//            if (i < columns.size() - 1) {
-//                writer.write("\t");
-//            }
-//        }
-//        writer.newLine();
 
         // write the rows
         ArrayList<Row> rows = table.getRows();
@@ -155,7 +151,6 @@ public class DBServer {
             }
             writer.newLine();
         }
-
         writer.close();
     }
 
@@ -173,24 +168,8 @@ public class DBServer {
             DBcmd cmd = p.parse();
             return cmd.query(this);
         } catch (ParseException e) {e.printStackTrace();}
-//        String storageFolderPath = Paths.get("databases", "peopleDB").toAbsolutePath().toString();
-//        Database currentDatabase = new Database();
-//
-//        for (File file : new File(storageFolderPath).listFiles(File::isFile)) {
-//            try {
-//                currentDatabase.addTable(file.getName(), parseFileToTable(file.getName(), "PeopleDB"));
-//            } catch (IOException e) {
-//                System.err.println("Error reading file " + file.getName() + " to table: " + e.getMessage());
-//            }
-//        }
-//
-//        // gets a hashmap containing all tables, gets values from them and converts to stream
-//        // invokes the convertTableToString function on each table
-//        // collects resulting string representations and concatonates with newline separator
-//        return currentDatabase.getAllTables().values().stream()
-//                .map(Table::convertTableToString)
-//                .collect(Collectors.joining("\n"));
-        return "something went wrong here";
+        // TODO check this return statement
+        return "An [ERROR] has occurred";
     }
 
     //  === Methods below handle networking aspects of the project - you will not need to change these ! ===

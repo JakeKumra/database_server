@@ -1,16 +1,9 @@
 package edu.uob;
 import java.util.List;
 
+// TODO check this class
 public abstract class DBcmd {
-    // protected List<Condition> conditions;
-    protected List<String> colNames;
-    protected List<String> tableNames;
-    protected String DBname;
-    protected String commandType;
 
     public abstract String query(DBServer s);
 
-    public void setDbName(String databaseName) {
-        this.DBname = databaseName;
-    }
 }

@@ -44,4 +44,35 @@ public class Row {
     public DataValue getValue(int index) {
         return values.get(index);
     }
+
+    public String getValueByCol(String colName) {
+        for (int i=0; i<values.size(); i++) {
+            if (values.get(i).getHeader().equals(colName)) {
+                return values.get(i).getValue();
+            }
+        }
+        return null;
+    }
+
+
+//    public int getInt(String columnName) {
+//        int columnIndex = getColumnIndex(columnName);
+//        if (columnIndex == -1) {
+//            // Column not found
+//            throw new IllegalArgumentException("Column not found: " + columnName);
+//        }
+//        return getInt(columnIndex);
+//    }
+//
+//    private int getColumnIndex(String columnName) {
+//        for (int i = 0; i < columns.length; i++) {
+//            if (columns[i].equals(columnName)) {
+//                return i;
+//            }
+//        }
+//        return -1;  // Column not found
+//    }
+
+
+
 }
