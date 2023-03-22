@@ -132,6 +132,9 @@ public class DBServer {
     }
 
     public void parseTableToFile(Table table, String filePath) throws IOException {
+
+        System.out.println("INSIDE");
+
         BufferedWriter writer = new BufferedWriter(new FileWriter(filePath));
         // write the headers
         String[] headers = table.getHeaders();

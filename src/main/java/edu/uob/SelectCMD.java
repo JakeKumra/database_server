@@ -76,6 +76,7 @@ public class SelectCMD extends DBcmd {
             if (!s.getTableNames().contains(this.tableName)) {
                 return "[ERROR] Table " + this.tableName + " does not exist in the database";
             }
+
             Table table = s.parseFileToTable(tableName, s.getCurrDbName());
 
             // Create a list of rows that match the condition (if present)

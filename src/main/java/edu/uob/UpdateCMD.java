@@ -60,18 +60,18 @@ public class UpdateCMD extends DBcmd {
         if (parseError) {
             return errorMessage;
         }
-
         List<SetClause> setClauseList = this.getSetClauseList();
         SetClause setClause = setClauseList.get(0);
 
-        System.out.println("Table name: " + tableName);
-        System.out.println("Attribute name: " + setClause.getAttributeName());
-        System.out.println("Value: " + setClause.getValue().getValue());
+//        System.out.println("Table name: " + tableName);
+//        System.out.println("Attribute name: " + setClause.getAttributeName());
+//        System.out.println("Value: " + setClause.getValue().getValue());
+//
+//        System.out.println("columnAttribute: " + condition.getColumn());
+//        System.out.println("operator: " + condition.getOperator());
+//        System.out.println("columnValue: " + condition.getValue());
 
-        System.out.println("columnAttribute: " + condition.getColumn());
-        System.out.println("operator: " + condition.getOperator());
-        System.out.println("columnValue: " + condition.getValue());
-
+        setAttributeName(setClause.getAttributeName());
         try {
             if (s.getCurrentDatabase() == null) {
                 return "[ERROR] no database has been selected";
@@ -86,9 +86,6 @@ public class UpdateCMD extends DBcmd {
             int numRowsUpdated = table.updateRows(attributeName, setClause.getValue(), condition);
 
             String filePath = new FileManager().getDbPath().toString() + File.separator + tableName;
-
-            System.out.println("File path: " + filePath);
-
             s.parseTableToFile(table, filePath);
 
             // Format the result string

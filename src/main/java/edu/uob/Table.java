@@ -65,6 +65,8 @@ public class Table {
 //    }
 
     public int getColumnIndex(String columnName) {
+        System.out.println("COLUMN NAME " + columnName);
+
         int columnIndex = -1;
         for (int i = 0; i < headers.length; i++) {
             if (headers[i].equals(columnName)) {
@@ -74,7 +76,6 @@ public class Table {
         }
         return columnIndex;
     }
-
 
     // TODO delete this if unused?
 //    public boolean attributeFound (String attribute) {
@@ -208,15 +209,19 @@ public class Table {
 
     public int updateRows(String attributeName, DataValue newValue, Condition condition) {
 
+        System.out.println("ATTRIBUTE NAME: " + attributeName);
+
         int numRowsUpdated = 0;
         int attributeIndex = getColumnIndex(attributeName);
+
+        // this is returning null
+
 
         if (attributeIndex == -1) {
             // Attribute not found
             // >>>>>>>>>>>>>> THERE'S AN ISSUE HERE <<<<<<<<<<<<<<<<
             return numRowsUpdated;
         }
-
 
         List<Row> filteredRows = filterRows(condition);
 

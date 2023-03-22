@@ -64,17 +64,18 @@ public class ExampleDBTests {
     }
 
     @Test
-    public void testUpdate() {
-        String randomName = generateRandomName();
-        sendCommandToServer("CREATE DATABASE " + randomName + ";");
-        sendCommandToServer("USE " + randomName + ";");
+    public void testUpdateCMD() {
+        String databaseName = "testUpdateDb";
+        sendCommandToServer("CREATE DATABASE " + databaseName + ";");
+        sendCommandToServer("USE " + databaseName + ";");
         sendCommandToServer("CREATE TABLE marks (name, mark, pass);");
         sendCommandToServer("INSERT INTO marks VALUES ('Steve', 65, TRUE);");
         sendCommandToServer("INSERT INTO marks VALUES ('Dave', 55, TRUE);");
         sendCommandToServer("INSERT INTO marks VALUES ('Bob', 35, FALSE);");
         sendCommandToServer("INSERT INTO marks VALUES ('Clive', 20, FALSE);");
         String responseOne = sendCommandToServer("UPDATE marks SET mark = 38 WHERE name == 'Clive';");
-        System.out.println(responseOne);
+        assertTrue(responseOne.contains("[OK]"), "A valid query was made, however an [OK] tag was not returned");
+        String response = sendCommandToServer("SELECT * FROM marks;");
     }
 
     @Test
