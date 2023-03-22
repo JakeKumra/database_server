@@ -26,8 +26,8 @@ public class Parser {
             cmd = parseInsert();
         } else if (token.equalsIgnoreCase("SELECT")) {
             cmd = parseSelect();
-//        } else if (token.equalsIgnoreCase("UPDATE")) {
-//            cmd = parseUpdate();
+        } else if (token.equalsIgnoreCase("UPDATE")) {
+            cmd = parseUpdate();
 //        } else if (token.equalsIgnoreCase("ALTER")) {
 //            cmd = parseAlter();
 //        } else if (token.equalsIgnoreCase("DELETE")) {
@@ -41,41 +41,124 @@ public class Parser {
         }
         return cmd;
     }
-//
-//    private UpdateCMD parseUpdate() throws ParseException {
-//        UpdateCMD cmd = new UpdateCMD();
-//        String token = getNextToken();
-//        if (token.equalsIgnoreCase("UPDATE")) {
-//            cmd.setTableName(getNextToken());
-//            token = getNextToken();
-//            if (!token.equalsIgnoreCase("SET")) {
-//                throw new ParseException("Expected SET after table name");
-//            }
-//            List<NameValuePair> nameValuePairs = new ArrayList<>();
-//            token = getNextToken();
-//            while (!token.equalsIgnoreCase("WHERE")) {
-//                String attributeName = token;
-//                token = getNextToken();
-//                if (!token.equals("=")) {
-//                    throw new ParseException("Expected = after attribute name");
-//                }
-//                Value value = parseValue();
-//                nameValuePairs.add(new NameValuePair(attributeName, value));
-//                token = getNextToken();
-//                if (token.equals(",")) {
-//                    token = getNextToken();
-//                } else if (!token.equalsIgnoreCase("WHERE")) {
-//                    throw new ParseException("Expected , or WHERE after name-value pair");
-//                }
-//            }
-//            cmd.setNameValuePairs(nameValuePairs);
-//            Condition condition = parseCondition();
-//            cmd.setCondition(condition);
-//        } else {
-//            throw new ParseException("Expected UPDATE command");
-//        }
-//        return cmd;
-//    }
+
+    private UpdateCMD parseUpdate() throws ParseException {
+        UpdateCMD cmd = new UpdateCMD();
+
+        // Consume the "UPDATE" keyword
+        if (!getNextToken().equalsIgnoreCase("UPDATE")) {
+            cmd.setParseError();
+            cmd.setErrorMessage("[ERROR] Expected UPDATE keyword");
+            return cmd;
+        }
+
+        // Get table name
+        String tableName = getNextToken();
+        if (!tableName.matches("[a-zA-Z][a-zA-Z0-9]*")) {
+            cmd.setParseError();
+            cmd.setErrorMessage("[ERROR] Invalid table name");
+            return cmd;
+        }
+        cmd.setTableName(tableName);
+
+        // Consume the "SET" keyword
+        if (!getNextToken().equalsIgnoreCase("SET")) {
+            cmd.setParseError();
+            cmd.setErrorMessage("[ERROR] Expected SET keyword");
+            return cmd;
+        }
+
+        // Parse set clause list
+        try {
+            cmd.setSetClauseList(parseSetClauseList());
+        } catch (ParseException e) {
+            cmd.setParseError();
+            cmd.setErrorMessage("[ERROR] Invalid input");
+            return cmd;
+        }
+
+        // Check if there's a WHERE clause
+        if (getNextToken().equalsIgnoreCase("WHERE")) {
+            cmd.setWhereQuery(true);
+            try {
+                cmd.setCondition(parseCondition());
+            } catch (ParseException e) {
+                cmd.setParseError();
+                cmd.setErrorMessage("[ERROR] Invalid condition");
+                return cmd;
+            }
+        } else {
+            pos--;
+        }
+
+        // Consume the semicolon
+        if (!getNextToken().equals(";")) {
+            cmd.setParseError();
+            cmd.setErrorMessage("[ERROR] Expected semicolon");
+            return cmd;
+        }
+        return cmd;
+    }
+
+    private List<SetClause> parseSetClauseList() throws ParseException {
+        List<SetClause> setClauseList = new ArrayList<>();
+
+        // Parse first set clause
+        SetClause setClause = parseSetClause();
+        setClauseList.add(setClause);
+
+        // Parse remaining set clauses
+        while (getNextToken().equals(",")) {
+            setClause = parseSetClause();
+            setClauseList.add(setClause);
+        }
+        pos--;
+
+        return setClauseList;
+    }
+
+    private SetClause parseSetClause() throws ParseException {
+
+        // Parse attribute name
+        String attributeName = getNextToken();
+        if (!attributeName.matches("[a-zA-Z][a-zA-Z0-9]*")) {
+            throw new ParseException("[ERROR] Invalid attribute name", pos);
+        }
+
+        // Consume the "=" operator
+        if (!getNextToken().equals("=")) {
+            throw new ParseException("[ERROR] Expected \"=\" operator", pos);
+        }
+
+        // Parse the value
+        DataValue value = new DataValue(parseDataValue(), attributeName);
+
+        return new SetClause(attributeName, value);
+    }
+
+    private String parseDataValue() throws ParseException {
+        String token = getNextToken();
+
+        // Check if the token is a quoted string
+        if (token.startsWith("\"") && token.endsWith("\"")) {
+            return token.substring(1, token.length() - 1);
+        }
+
+        // Check if the token is a number
+        try {
+            Double.parseDouble(token);
+            return token;
+        } catch (NumberFormatException e) {}
+
+        // Check if the token is a boolean
+        if (token.equalsIgnoreCase("TRUE") || token.equalsIgnoreCase("FALSE")) {
+            return token;
+        }
+
+        // If none of the above, it's an invalid data value
+        throw new ParseException("[ERROR] Invalid data value", pos);
+    }
+
 
     private DropCMD parseDrop() throws ParseException {
         DropCMD cmd = new DropCMD();

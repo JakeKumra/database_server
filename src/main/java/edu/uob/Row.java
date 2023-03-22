@@ -54,6 +54,15 @@ public class Row {
         return null;
     }
 
+    public DataValue getDataValue(int index) {
+        return values.get(index);
+    }
+
+    public void setDataValue(int index, DataValue value) {
+        values.set(index, value);
+    }
+
+
 
 //    public int getInt(String columnName) {
 //        int columnIndex = getColumnIndex(columnName);

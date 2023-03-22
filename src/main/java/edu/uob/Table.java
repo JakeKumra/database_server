@@ -113,6 +113,7 @@ public class Table {
     }
 
     public List<Row> filterRows(Condition condition) {
+        System.out.println("INSIDE FILTER ROWS");
         List<Row> result = new ArrayList<>();
         for (Row row : rows) {
             if (evaluateCondition(row, condition)) {
@@ -203,4 +204,34 @@ public class Table {
         }
         String stringCopyOfTable = sb.toString();
         return stringCopyOfTable;
-}   }
+    }
+
+    public int updateRows(String attributeName, DataValue newValue, Condition condition) {
+
+        int numRowsUpdated = 0;
+        int attributeIndex = getColumnIndex(attributeName);
+
+        if (attributeIndex == -1) {
+            // Attribute not found
+            // >>>>>>>>>>>>>> THERE'S AN ISSUE HERE <<<<<<<<<<<<<<<<
+            return numRowsUpdated;
+        }
+
+
+        List<Row> filteredRows = filterRows(condition);
+
+        for (Row row : filteredRows) {
+            DataValue oldValue = row.getDataValue(attributeIndex);
+            if (oldValue == null || !oldValue.getValue().equals(newValue.getValue())) {
+                row.setDataValue(attributeIndex, newValue);
+                numRowsUpdated++;
+            }
+        }
+
+        return numRowsUpdated;
+    }
+
+
+}
+
+

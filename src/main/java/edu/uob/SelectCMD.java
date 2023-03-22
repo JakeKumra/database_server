@@ -16,7 +16,6 @@ public class SelectCMD extends DBcmd {
         this.tableName = null;
         this.whereQuery = false;
         this.condition = null;
-        this.parseError = false;
     }
 
     public void setWhereQuery(boolean bool) {
