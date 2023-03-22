@@ -33,26 +33,20 @@ public class CreateCMD extends DBcmd {
     public String query(DBServer s) {
         if (parseError) {
             return errorMessage;
+        } else if (reservedKeywordFound(name, attributes)) {
+            return "[ERROR] Attempt to use reserved keyword";
         }
-        if (isDatabaseCreation) {
-            File databaseDir = new File(new FileManager().getDbPath() + File.separator + name);
-            if (databaseDir.exists()) {
-                return "[ERROR] Database " + name + " already exists.";
-            } else if (!databaseDir.mkdir()) {
-                return "[ERROR] Failed to create database directory.";
-            } else {
-                return "[OK] Database " + name + " created";
-            }
-        } else {
 
+        if (isDatabaseCreation) {
+            return createDatabase(name);
+        } else {
             // creating a new table within current database
             String currDatabaseName = s.getCurrDbName();
             String path = new FileManager().getDbPath() + File.separator + currDatabaseName;
             File tableFile = new File (path + File.separator + name);
             if (tableFile.exists()) {
                 return "[ERROR]" + " table " + name + " already exists within database" + currDatabaseName;
-            }
-            if (duplicateAttFound()) {
+            } else if (duplicateAttFound()) {
                 return "[ERROR]" + " table " + name + " contains duplicate attributes";
             }
             if (attributes == null) {
@@ -61,9 +55,7 @@ public class CreateCMD extends DBcmd {
                         tableFile.createNewFile();
                     }
                 } catch (IOException e) {
-
                     e.printStackTrace();
-                    System.out.println("Error: unable to create new table file inside CreateCMD");
                 }
             } else {
                 try {
@@ -83,5 +75,30 @@ public class CreateCMD extends DBcmd {
             }
             return "[OK] TABLE " + name + " created";
         }
+    }
+
+    private String createDatabase (String name) {
+        File databaseDir = new File(new FileManager().getDbPath() + File.separator + name);
+        if (databaseDir.exists()) {
+            return "[ERROR] Database " + name + " already exists.";
+        } else if (!databaseDir.mkdir()) {
+            return "[ERROR] Failed to create database directory.";
+        } else {
+            return "[OK] Database " + name + " created";
+        }
+    }
+
+    private boolean reservedKeywordFound (String name, List<String> attributes) {
+        if (SQLKeywords.isKeyword(name)) {
+             return true;
+        }
+        if (attributes != null) {
+            for (String attribute : attributes) {
+                if (SQLKeywords.isKeyword(attribute)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

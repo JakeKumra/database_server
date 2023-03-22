@@ -62,31 +62,23 @@ public class UpdateCMD extends DBcmd {
         }
         List<SetClause> setClauseList = this.getSetClauseList();
         SetClause setClause = setClauseList.get(0);
-
-//        System.out.println("Table name: " + tableName);
-//        System.out.println("Attribute name: " + setClause.getAttributeName());
-//        System.out.println("Value: " + setClause.getValue().getValue());
-//
-//        System.out.println("columnAttribute: " + condition.getColumn());
-//        System.out.println("operator: " + condition.getOperator());
-//        System.out.println("columnValue: " + condition.getValue());
-
+        FileManager FM = new FileManager();
         setAttributeName(setClause.getAttributeName());
         try {
             if (s.getCurrentDatabase() == null) {
                 return "[ERROR] no database has been selected";
-            }
-            if (!s.getTableNames().contains(this.tableName)) {
+            } else if (!s.getTableNames().contains(this.tableName)) {
                 return "[ERROR] Table " + this.tableName + " does not exist in the database";
             }
 
-            Table table = s.parseFileToTable(tableName, s.getCurrDbName());
+            Table table = FM.parseFileToTable(tableName, s.getCurrDbName());
 
             // Update rows that match the condition
             int numRowsUpdated = table.updateRows(attributeName, setClause.getValue(), condition);
+            String filePath = FM.getDbPath().toString() + File.separator + tableName;
 
-            String filePath = new FileManager().getDbPath().toString() + File.separator + tableName;
-            s.parseTableToFile(table, filePath);
+            // only write the updated row to the file?
+            FM.parseTableToFile(table, filePath);
 
             // Format the result string
             StringBuilder resultBuilder = new StringBuilder("[OK] ");

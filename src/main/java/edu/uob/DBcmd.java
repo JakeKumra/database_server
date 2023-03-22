@@ -12,11 +12,8 @@ public abstract class DBcmd {
         this.errorMessage = null;
     }
 
-    public void setParseError() {
+    public void setError(String errorMessage) {
         this.parseError = true;
-    }
-
-    public void setErrorMessage(String errorMessage) {
         this.errorMessage = errorMessage;
     }
 

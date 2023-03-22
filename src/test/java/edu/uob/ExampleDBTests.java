@@ -41,6 +41,19 @@ public class ExampleDBTests {
     }
 
     @Test
+    public void testInvalidCreateCommands() {
+        String invalidDbname = "SELECT";
+        String responseOne = sendCommandToServer("CREATE DATABASE " + invalidDbname + ";");
+        assertTrue(responseOne.contains("[ERROR]"), "A invalid query was made, however an [ERROR] tag was not returned");
+        String validDbname = generateRandomName();
+        sendCommandToServer("CREATE DATABASE " + validDbname + ";");
+        String responseTwo = sendCommandToServer("CREATE TABLE use (name, mark, pass);");
+        assertTrue(responseTwo.contains("[ERROR]"), "A invalid query was made, however an [ERROR] tag was not returned");
+        String responseThree = sendCommandToServer("CREATE TABLE marks (name, delete, pass);");
+        assertTrue(responseThree.contains("[ERROR]"), "A invalid query was made, however an [ERROR] tag was not returned");
+    }
+
+    @Test
     public void testBasicCreateAndQuery() {
         String randomName = generateRandomName();
         sendCommandToServer("CREATE DATABASE " + randomName + ";");
@@ -58,9 +71,19 @@ public class ExampleDBTests {
     }
 
     @Test
-    public void testCreate() {
-        String responseOne = sendCommandToServer("CREATE TABLE new;");
-        System.out.println(responseOne);
+    public void testBasicDelete() {
+        String randomName = generateRandomName();
+        sendCommandToServer("CREATE DATABASE " + randomName + ";");
+        sendCommandToServer("USE " + randomName + ";");
+        sendCommandToServer("CREATE TABLE marks (name, mark, pass);");
+        sendCommandToServer("INSERT INTO marks VALUES ('Steve', 65, TRUE);");
+        sendCommandToServer("INSERT INTO marks VALUES ('Dave', 55, TRUE);");
+        sendCommandToServer("INSERT INTO marks VALUES ('Bob', 35, FALSE);");
+        sendCommandToServer("INSERT INTO marks VALUES ('Clive', 20, FALSE);");
+        String response = sendCommandToServer("DELETE FROM marks WHERE name == 'Dave';");
+        assertTrue(response.contains("[OK]"), "A valid query was made, however an [OK] tag was not returned");
+        String responseTwo = sendCommandToServer("DELETE FROM marks name == 'Dave';");
+        assertTrue(responseTwo.contains("[ERROR]"), "An invalid query was made, however an [ERROR] tag was not returned");
     }
 
     @Test
@@ -75,7 +98,12 @@ public class ExampleDBTests {
         sendCommandToServer("INSERT INTO marks VALUES ('Clive', 20, FALSE);");
         String responseOne = sendCommandToServer("UPDATE marks SET mark = 38 WHERE name == 'Clive';");
         assertTrue(responseOne.contains("[OK]"), "A valid query was made, however an [OK] tag was not returned");
+        String responseTwo = sendCommandToServer("UPDATE marks SET pass = FALSE WHERE name == 'Steve';");
+        assertTrue(responseOne.contains("[OK]"), "A valid query was made, however an [OK] tag was not returned");
+        String responseThree = sendCommandToServer("UPDATE marks SET mark = 38 WHERE name == 'Clive';");
+
         String response = sendCommandToServer("SELECT * FROM marks;");
+        // TODO add some test cases here
     }
 
     @Test
@@ -162,6 +190,49 @@ public class ExampleDBTests {
         assertFalse(responseTwo.contains("Clive"), "A valid query was made, however 'Clive' was returned'");
         assertFalse(responseTwo.contains("Bob"), "A valid query was made, however 'Bob' was returned");
     }
+
+    @Test
+    public void testAdvancedQueryIDTwo() {
+        String randomName = generateRandomName();
+        sendCommandToServer("CREATE DATABASE " + randomName + ";");
+        sendCommandToServer("USE " + randomName + ";");
+        sendCommandToServer("CREATE TABLE marks (name, mark, pass);");
+        sendCommandToServer("INSERT INTO marks VALUES ('Steve', 65, TRUE);");
+        sendCommandToServer("INSERT INTO marks VALUES ('Dave', 55, TRUE);");
+        sendCommandToServer("INSERT INTO marks VALUES ('Bob', 35, FALSE);");
+        sendCommandToServer("INSERT INTO marks VALUES ('Clive', 20, FALSE);");
+        String responseOne = sendCommandToServer("SELECT * FROM marks WHERE mark > 35;");
+        assertTrue(responseOne.contains("[OK]"), "A valid query was made, however an [OK] tag was not returned");
+        assertTrue(responseOne.contains("Steve"), "A valid query was made, however Steve was not returned");
+        assertTrue(responseOne.contains("Dave"), "A valid query was made, however Dave was not returned");
+        assertFalse(responseOne.contains("Bob"), "A valid query was made, however Bob was returned");
+        assertFalse(responseOne.contains("Clive"), "A valid query was made, however Clive was returned");
+    }
+
+    @Test
+    public void testSelectParseFail() {
+        String responseOne = sendCommandToServer("SELECT * FROM marks WHERE mark > 35;");
+        assertTrue(responseOne.contains("[ERROR]"), "An invalid query was made, however an [ERROR] tag was not returned");
+        String randomName = generateRandomName();
+        sendCommandToServer("CREATE DATABASE " + randomName + ";");
+        sendCommandToServer("USE " + randomName + ";");
+        sendCommandToServer("CREATE TABLE marks (name, mark, pass);");
+        sendCommandToServer("INSERT INTO marks VALUES ('Steve', 65, TRUE);");
+        sendCommandToServer("INSERT INTO marks VALUES ('Dave', 55, TRUE);");
+        sendCommandToServer("INSERT INTO marks VALUES ('Bob', 35, FALSE);");
+        sendCommandToServer("INSERT INTO marks VALUES ('Clive', 20, FALSE);");
+        String responseTwo = sendCommandToServer("SELECT * FROM; marks WHERE mark > 35");
+        assertTrue(responseTwo.contains("[ERROR]"), "An invalid query was made, however an [ERROR] tag was not returned");
+        String responseThree = sendCommandToServer("SELECT * marks WHERE mark > 35");
+        assertTrue(responseThree.contains("[ERROR]"), "An invalid query was made, however an [ERROR] tag was not returned");
+        String responseFour = sendCommandToServer("SELECT * marks WHERE mark > 35");
+        assertTrue(responseFour.contains("[ERROR]"), "An invalid query was made, however an [ERROR] tag was not returned");
+        String responseFive = sendCommandToServer("SELECT * marks WHERE mark ! 35");
+        assertTrue(responseFive.contains("[ERROR]"), "An invalid query was made, however an [ERROR] tag was not returned");
+        String responseSix = sendCommandToServer("SELECT * FROM;");
+        assertTrue(responseFive.contains("[ERROR]"), "An invalid query was made, however an [ERROR] tag was not returned");
+    }
+
 
     // A test to make sure that databases can be reopened after server restart
     @Test

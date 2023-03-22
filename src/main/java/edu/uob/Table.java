@@ -46,27 +46,7 @@ public class Table {
         return column;
     }
 
-    // TODO delete if necessary
-//    public ArrayList<String> getOneColumn(String attributeName) {
-//        // TODO can change to ArrayList of Datavalues if necessary
-//        ArrayList<String> columnList = new ArrayList<>();
-//        columnList.add(attributeName);
-//        ArrayList<Row> allRows = getRows();
-//        for (int i=0; i<allRows.size(); i++) {
-//            int rowLength = allRows.get(i).getRowLength();
-//            ArrayList<DataValue> allValuesInRow = allRows.get(i).getValues();
-//            for (int j=0; j<rowLength; j++) {
-//                if (allValuesInRow.get(j).getHeader().equals(attributeName)) {
-//                    columnList.add(allValuesInRow.get(j).getValue());
-//                }
-//            }
-//        }
-//        return columnList;
-//    }
-
     public int getColumnIndex(String columnName) {
-        System.out.println("COLUMN NAME " + columnName);
-
         int columnIndex = -1;
         for (int i = 0; i < headers.length; i++) {
             if (headers[i].equals(columnName)) {
@@ -76,18 +56,6 @@ public class Table {
         }
         return columnIndex;
     }
-
-    // TODO delete this if unused?
-//    public boolean attributeFound (String attribute) {
-//        String [] headersList = this.getHeaders();
-//        boolean attributeFound = false;
-//        for (int i=0; i< getHeaders().length; i++) {
-//            if (headersList[i].equals(attribute)) {
-//                attributeFound = true;
-//            }
-//        }
-//        return attributeFound;
-//    }
 
     public String[] getHeaders() {
         return headers;
@@ -114,7 +82,6 @@ public class Table {
     }
 
     public List<Row> filterRows(Condition condition) {
-        System.out.println("INSIDE FILTER ROWS");
         List<Row> result = new ArrayList<>();
         for (Row row : rows) {
             if (evaluateCondition(row, condition)) {
@@ -124,54 +91,78 @@ public class Table {
         return result;
     }
 
+    public int deleteRows(Condition condition) {
+        int count = 0;
+        if (rows != null) {
+            for (int i=0; i<rows.size(); i++) {
+                if (evaluateCondition(rows.get(i), condition)) {
+                    count++;
+                    rows.remove(i);
+                }
+            }
+        }
+        return count;
+    }
+
+
+
     private boolean evaluateCondition(Row row, Condition condition) {
 
-        String operator = condition.getOperator();
-        String columnName = condition.getColumn();
-        String conditionValue = removeQuotes(condition.getValue());
-        String columnValue = row.getValueByCol(columnName);
+        try {
+            String operator = condition.getOperator();
+            String columnName = condition.getColumn();
+            String conditionValue = removeQuotes(condition.getValue());
+            String columnValue = row.getValueByCol(columnName);
 
-        System.out.println("operator: " + operator + "\n");
-        System.out.println("column: " + columnName + "\n");
-        System.out.println("value: " + conditionValue + "\n");
-        System.out.println("Column value: "+ columnValue);
+    //        System.out.println("operator: " + operator + "\n");
+    //        System.out.println("column: " + columnName + "\n");
+//            System.out.println("Condition value: " + conditionValue);
+//            System.out.println("Data value: "+ columnValue);
 
-        // ::=  "==" | ">" | "<" | ">=" | "<=" | "!=" | " LIKE "
+            if (condition.isSimpleComparison()) {
 
-        if (condition.isSimpleComparison()) {
-
-            if (operator.equals("<")) {
-                return false;
-//                        columnValue < conditionValue;
-//            } else if (operator.equals("<=")) {
-//                return columnValue <= conditionValue;
-//            } else if (operator.equals(">")) {
-//                return columnValue > conditionValue;
-//            } else if (operator.equals(">=")) {
-//                return columnValue >= conditionValue;
-            } else if (operator.equals("==")) {
-                if (columnValue.equals(conditionValue)) {
-                    return true;
-                }
-            } else if (operator.equals("!=")) {
-                if (!columnValue.equals(conditionValue)) {
-                    return true;
+                if (operator.equals("<")) {
+                    if (Double.parseDouble(columnValue) < Double.parseDouble(conditionValue)) {
+                        return true;
+                    }
+                } else if (operator.equals("<=")) {
+                    if (Double.parseDouble(columnValue) <= Double.parseDouble(conditionValue)) {
+                        return true;
+                    }
+                } else if (operator.equals(">")) {
+                    if (Double.parseDouble(columnValue) > Double.parseDouble(conditionValue)) {
+                        return true;
+                    }
+                 } else if (operator.equals(">=")) {
+                    if (Double.parseDouble(columnValue) >= Double.parseDouble(conditionValue)) {
+                        return true;
+                    }
+                } else if (operator.equals("==")) {
+                    if (columnValue.equals(conditionValue)) {
+                        return true;
+                    }
+                } else if (operator.equals("!=")) {
+                    if (!columnValue.equals(conditionValue)) {
+                        return true;
+                    }
+                } else {
+                    return false;
                 }
             } else {
-                throw new IllegalArgumentException("Invalid operator: " + operator);
+                boolean leftResult = evaluateCondition(row, condition.getNested());
+                boolean rightResult = evaluateCondition(row, condition.getRight());
+                String boolOp = condition.getBoolOp();
+                switch (boolOp.toUpperCase()) {
+                    case "AND":
+                        return leftResult && rightResult;
+                    case "OR":
+                        return leftResult || rightResult;
+                    default:
+                        return false;
+                }
             }
-        } else {
-            boolean leftResult = evaluateCondition(row, condition.getNested());
-            boolean rightResult = evaluateCondition(row, condition.getRight());
-            String boolOp = condition.getBoolOp();
-            switch (boolOp) {
-                case "AND":
-                    return leftResult && rightResult;
-                case "OR":
-                    return leftResult || rightResult;
-                default:
-                    throw new IllegalArgumentException("Invalid boolean operator: " + boolOp);
-            }
+        } catch (NumberFormatException e){
+            return false;
         }
         return false;
     }
@@ -184,42 +175,11 @@ public class Table {
         }
     }
 
-    public String convertTableToString() {
-        StringBuilder sb = new StringBuilder();
-
-        // add the column headers
-        Row firstRow = rows.get(0);
-        for (DataValue dv : firstRow.getValues()) {
-            sb.append(dv.getHeader().toString());
-            sb.append('\t');
-        }
-        sb.append('\n');
-
-        // add the rest of the rows
-        for (Row row : rows) {
-            for (DataValue dv : row.getValues()) {
-                sb.append(dv.getValue().toString());
-                sb.append('\t');
-            }
-            sb.append('\n');
-        }
-        String stringCopyOfTable = sb.toString();
-        return stringCopyOfTable;
-    }
-
     public int updateRows(String attributeName, DataValue newValue, Condition condition) {
-
-        System.out.println("ATTRIBUTE NAME: " + attributeName);
 
         int numRowsUpdated = 0;
         int attributeIndex = getColumnIndex(attributeName);
-
-        // this is returning null
-
-
         if (attributeIndex == -1) {
-            // Attribute not found
-            // >>>>>>>>>>>>>> THERE'S AN ISSUE HERE <<<<<<<<<<<<<<<<
             return numRowsUpdated;
         }
 
@@ -232,11 +192,8 @@ public class Table {
                 numRowsUpdated++;
             }
         }
-
         return numRowsUpdated;
     }
-
-
 }
 
 

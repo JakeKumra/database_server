@@ -42,7 +42,7 @@ public class InsertCMD extends DBcmd {
         }
 
         try {
-            Table tableFromFile = s.parseFileToTable(tableName, s.getCurrDbName());
+            Table tableFromFile = new FileManager().parseFileToTable(tableName, s.getCurrDbName());
             if (tableFromFile.getHeaders().length != values.size() + 1) {
                 return "[ERROR] number of values does not match table attributes";
             }
@@ -57,7 +57,7 @@ public class InsertCMD extends DBcmd {
 
             FileManager FM = new FileManager();
             String path = FM.getDbPath() + File.separator + s.getCurrDbName() + File.separator + tableName;
-            s.parseTableToFile(tableFromFile, path);
+            new FileManager().parseTableToFile(tableFromFile, path);
 
             return String.format("[OK] %s added to table %s inside database %s", values, tableName, s.getCurrDbName());
         } catch (IOException e) {

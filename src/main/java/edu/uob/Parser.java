@@ -30,8 +30,8 @@ public class Parser {
             cmd = parseUpdate();
 //        } else if (token.equalsIgnoreCase("ALTER")) {
 //            cmd = parseAlter();
-//        } else if (token.equalsIgnoreCase("DELETE")) {
-//            cmd = parseDelete();
+        } else if (token.equalsIgnoreCase("DELETE")) {
+            cmd = parseDelete();
         } else if (token.equalsIgnoreCase("DROP")) {
             cmd = parseDrop();
 //        } else if (token.equalsIgnoreCase("JOIN")) {
@@ -42,29 +42,62 @@ public class Parser {
         return cmd;
     }
 
-    private UpdateCMD parseUpdate() throws ParseException {
-        UpdateCMD cmd = new UpdateCMD();
+    private DeleteCMD parseDelete() throws ParseException {
+        DeleteCMD cmd = new DeleteCMD();
 
-        // Consume the "UPDATE" keyword
-        if (!getNextToken().equalsIgnoreCase("UPDATE")) {
-            cmd.setParseError();
-            cmd.setErrorMessage("[ERROR] Expected UPDATE keyword");
+        if (!getNextToken().equalsIgnoreCase("DELETE")) {
+            cmd.setError("[ERROR] Expected DELETE keyword");
             return cmd;
         }
 
-        // Get table name
+        if (!getNextToken().equalsIgnoreCase("FROM")) {
+            cmd.setError("[ERROR] Expected FROM keyword");
+            return cmd;
+        }
+
         String tableName = getNextToken();
         if (!tableName.matches("[a-zA-Z][a-zA-Z0-9]*")) {
-            cmd.setParseError();
-            cmd.setErrorMessage("[ERROR] Invalid table name");
+            cmd.setError("[ERROR] invalid table name");
             return cmd;
         }
         cmd.setTableName(tableName);
 
-        // Consume the "SET" keyword
+        if (getNextToken().equalsIgnoreCase("WHERE")) {
+            try {
+                cmd.setCondition(parseCondition());
+            } catch (ParseException e) {
+                cmd.setError("[ERROR] invalid condition provided");
+                return cmd;
+            }
+        } else {
+            cmd.setError("[ERROR] expected WHERE keyword");
+            return cmd;
+        }
+
+        if (!getNextToken().equals(";")) {
+            cmd.setError("[ERROR] Expected semicolon");
+            return cmd;
+        }
+        return cmd;
+    }
+
+    private UpdateCMD parseUpdate() throws ParseException {
+        UpdateCMD cmd = new UpdateCMD();
+
+        if (!getNextToken().equalsIgnoreCase("UPDATE")) {
+            cmd.setError("[ERROR] Expected UPDATE keyword");
+            return cmd;
+        }
+
+        String tableName = getNextToken();
+        if (!tableName.matches("[a-zA-Z][a-zA-Z0-9]*")) {
+            cmd.setError("[ERROR] Invalid table name");
+            return cmd;
+        }
+        cmd.setTableName(tableName);
+
         if (!getNextToken().equalsIgnoreCase("SET")) {
-            cmd.setParseError();
-            cmd.setErrorMessage("[ERROR] Expected SET keyword");
+            cmd.setError("[ERROR] Expected SET keyword");
             return cmd;
         }
 
@@ -72,29 +105,24 @@ public class Parser {
         try {
             cmd.setSetClauseList(parseSetClauseList());
         } catch (ParseException e) {
-            cmd.setParseError();
-            cmd.setErrorMessage("[ERROR] Invalid input");
+            cmd.setError("[ERROR] Invalid input");
             return cmd;
         }
 
-        // Check if there's a WHERE clause
         if (getNextToken().equalsIgnoreCase("WHERE")) {
             cmd.setWhereQuery(true);
             try {
                 cmd.setCondition(parseCondition());
             } catch (ParseException e) {
-                cmd.setParseError();
-                cmd.setErrorMessage("[ERROR] Invalid condition");
+                cmd.setError("[ERROR] Invalid condition");
                 return cmd;
             }
         } else {
             pos--;
         }
 
-        // Consume the semicolon
         if (!getNextToken().equals(";")) {
-            cmd.setParseError();
-            cmd.setErrorMessage("[ERROR] Expected semicolon");
+            cmd.setError("[ERROR] Expected semicolon");
             return cmd;
         }
         return cmd;
@@ -125,7 +153,6 @@ public class Parser {
             throw new ParseException("[ERROR] Invalid attribute name", pos);
         }
 
-        // Consume the "=" operator
         if (!getNextToken().equals("=")) {
             throw new ParseException("[ERROR] Expected \"=\" operator", pos);
         }
@@ -163,30 +190,24 @@ public class Parser {
     private DropCMD parseDrop() throws ParseException {
         DropCMD cmd = new DropCMD();
 
-        // Verify the first token is "DROP"
         String token = getNextToken();
         if (!token.equals("DROP")) {
-            cmd.setParseError();
-            cmd.setErrorMessage("[ERROR] Expected 'DROP' but got '" + token + "'");
+            cmd.setError("[ERROR] Expected 'DROP' but got '" + token + "'");
             return cmd;
         }
 
-        // Verify the second token is "DATABASE" or "TABLE"
         token = getNextToken();
         if (!token.equals("DATABASE") && !token.equals("TABLE")) {
-            cmd.setParseError();
-            cmd.setErrorMessage("[ERROR] Expected 'DATABASE' or 'TABLE' but got '" + token + "'");
+            cmd.setError("[ERROR] Expected 'DATABASE' or 'TABLE' but got '" + token + "'");
             return cmd;
         }
         boolean isDatabase = token.equals("DATABASE");
 
-        // Create a new DropCMD object and set its attributes
         if (isDatabase) {
             // Verify the next token is the name of the database to be dropped
             String databaseName = getNextToken();
             if (databaseName.isEmpty()) {
-                cmd.setParseError();
-                cmd.setErrorMessage("[ERROR] Expected a database name but got an empty string");
+                cmd.setError("[ERROR] Expected a database name but got an empty string");
                 return cmd;
             }
             cmd.setDatabaseName(databaseName);
@@ -194,18 +215,15 @@ public class Parser {
             // Verify the next token is the name of the table to be dropped
             String tableName = getNextToken();
             if (tableName.isEmpty()) {
-                cmd.setParseError();
-                cmd.setErrorMessage("[ERROR] Expected a table name but got an empty string");
+                cmd.setError("[ERROR] Expected a table name but got an empty string");
                 return cmd;
             }
             cmd.setTableName(tableName);
         }
 
-        // Verify the final token is ";"
         token = getNextToken();
         if (!token.equals(";")) {
-            cmd.setParseError();
-            cmd.setErrorMessage("[ERROR] Expected ';' but got '" + token + "'");
+            cmd.setError("[ERROR] Expected ';' but got '" + token + "'");
             return cmd;
         }
 
@@ -216,10 +234,8 @@ public class Parser {
     private SelectCMD parseSelect() throws ParseException {
         SelectCMD cmd = new SelectCMD();
 
-        // Consume the "SELECT" keyword
         if (!getNextToken().equalsIgnoreCase("SELECT")) {
-            cmd.setParseError();
-            cmd.setErrorMessage("[ERROR] Expected SELECT keyword");
+            cmd.setError("[ERROR] Expected SELECT keyword");
             return cmd;
         }
 
@@ -231,25 +247,20 @@ public class Parser {
             try {
                 cmd.setAttributeList(parseAttListSelect());
             } catch (ParseException e) {
-                cmd.setParseError();
-                cmd.setErrorMessage("[ERROR] Invalid input");
+                cmd.setError("[ERROR] Invalid input");
                 return cmd;
             }
         }
 
-        // Consume the "FROM" keyword
         if (!getNextToken().equalsIgnoreCase("FROM")) {
-            cmd.setParseError();
-            cmd.setErrorMessage("[ERROR] Expected FROM keyword");
+            cmd.setError("[ERROR] Expected FROM keyword");
             return cmd;
         }
 
-        // Get table name
         String tableName = getNextToken();
         if (!tableName.matches("[a-zA-Z][a-zA-Z0-9]*")) {
             System.out.println("INSIDE");
-            cmd.setParseError();
-            cmd.setErrorMessage("[ERROR] invalid table name");
+            cmd.setError("[ERROR] invalid table name");
             return cmd;
         }
         cmd.setTableName(tableName);
@@ -261,24 +272,20 @@ public class Parser {
                 cmd.setCondition(parseCondition());
             } catch (ParseException e) {
                 e.printStackTrace();
-                cmd.setParseError();
-                cmd.setErrorMessage("[ERROR] invalid table name");
+                cmd.setError("[ERROR] invalid table name");
                 return cmd;
             }
         } else {
             pos--;
         }
 
-        // Consume the semicolon
         if (!getNextToken().equals(";")) {
-            cmd.setParseError();
-            cmd.setErrorMessage("[ERROR] Expected semicolon");
+            cmd.setError("[ERROR] Expected semicolon");
             return cmd;
         }
         return cmd;
     }
 
-    // how to return an error to user here?
     private List<String> parseAttListSelect() throws ParseException {
         List<String> attributeList = new ArrayList<>();
         String attributeName = getNextToken();
@@ -348,25 +355,20 @@ public class Parser {
 
     private InsertCMD parseInsert() throws ParseException {
         InsertCMD cmd = new InsertCMD(null, null);
-        // Consume the "INSERT INTO" keywords
+
         if (!getNextToken().equalsIgnoreCase("INSERT") || !getNextToken().equalsIgnoreCase("INTO")) {
-            cmd.setParseError();
-            cmd.setErrorMessage("[ERROR] Expected INSERT INTO keywords");
+            cmd.setError("[ERROR] Expected INSERT INTO keywords");
             return cmd;
         }
 
-        // Get the table name
         String tableName = getNextToken();
         if (!tableName.matches("[a-zA-Z][a-zA-Z0-9]*")) {
-            cmd.setParseError();
-            cmd.setErrorMessage("[ERROR] invalid table name");
+            cmd.setError("[ERROR] invalid table name");
             return cmd;
         }
 
-        // Consume the "VALUES" keyword and the opening parenthesis
         if (!getNextToken().equalsIgnoreCase("VALUES") || !getNextToken().equals("(")) {
-            cmd.setParseError();
-            cmd.setErrorMessage("[ERROR] Expected VALUES keyword and opening parenthesis");
+            cmd.setError("[ERROR] Expected VALUES keyword and opening parenthesis");
             return cmd;
         }
 
@@ -374,18 +376,14 @@ public class Parser {
             // Parse the list of values
             List<String> values = parseValueList();
 
-            // Consume the closing parenthesis and semicolon
             if (!getNextToken().equals(")") || !getNextToken().equals(";")) {
-                cmd.setParseError();
-                cmd.setErrorMessage("[ERROR] Expected closing parenthesis and semicolon");
+                cmd.setError("[ERROR] Expected closing parenthesis and semicolon");
                 return cmd;
             }
 
-            // Create and return the InsertCMD object
             return new InsertCMD(tableName, values);
         } catch (ParseException e) {
-            cmd.setParseError();
-            cmd.setErrorMessage("[ERROR] invalid input");
+            cmd.setError("[ERROR] invalid input");
             return cmd;
         }
     }
@@ -394,12 +392,11 @@ public class Parser {
         List<String> values = new ArrayList<>();
         while (true) {
             String value = parseValue();
-            // Add the value to the list
+
             values.add(value);
             // Check if there are more values
             String nextToken = getNextToken();
             if (nextToken.equals(")")) {
-                // End of value list
                 pos--;
                 break;
             } else if (!nextToken.equals(",")) {
@@ -436,50 +433,44 @@ public class Parser {
                 }
             }
         } else {
-            // Numeric literal
             return token;
         }
     }
 
     private CreateCMD parseCreate () throws ParseException {
         CreateCMD cmd = new CreateCMD(null, null, false);
-        // Consume the "CREATE" keyword
+
         if (!getNextToken().equalsIgnoreCase("CREATE")) {
-            cmd.setParseError();
-            cmd.setErrorMessage("[ERROR] expected CREATE keyword\"");
+            cmd.setError("[ERROR] expected CREATE keyword\"");
             return cmd;
         }
         // Determine if this is a create database or create table command
         String nextToken = getCurrentToken();
         if (nextToken.equalsIgnoreCase("DATABASE")) {
-            // Consume the "DATABASE" keyword
+
             getNextToken();
-            // Consume the database name, if present
+
             String databaseName = null;
             nextToken = getNextToken();
             if (nextToken.matches("[a-zA-Z][a-zA-Z0-9]*")) {
                 databaseName = nextToken;
             } else {
                 pos--;
-                cmd.setParseError();
-                cmd.setErrorMessage("[ERROR] Expected database name");
+                cmd.setError("[ERROR] Expected database name");
                 return cmd;
             }
 
-            // Consume the ';' at the end of the command
             if (!getNextToken().equals(";")) {
-                cmd.setParseError();
-                cmd.setErrorMessage("[ERROR] Expected ; at end of command");
+                cmd.setError("[ERROR] Expected ; at end of command");
                 return cmd;
             }
             return new CreateCMD(databaseName, null, true);
         } else if (nextToken.equalsIgnoreCase("TABLE")) {
             getNextToken();
-            // Consume the table name
+
             String tableName = getNextToken();
             if (!tableName.matches("[a-zA-Z][a-zA-Z0-9]*")) {
-                cmd.setParseError();
-                cmd.setErrorMessage("[ERROR] Invalid table name\"");
+                cmd.setError("[ERROR] Invalid table name\"");
                 return cmd;
             }
 
@@ -487,27 +478,21 @@ public class Parser {
             nextToken = getNextToken();
             if (!nextToken.equals("(")) {
                 pos--;
-                // inside else if there is an attribute list or code after
             } else {
                 List<String> attributes = parseAttributeList();
 
-                // Consume the ')' at the end of the attribute list
                 if (!getNextToken().equals(")")) {
                     throw new ParseException("Expected ) at end of attribute list", pos);
                 }
                 return new CreateCMD(tableName, attributes, false);
             }
-            // Consume the ';' at the end of the command
             if (!getNextToken().equals(";")) {
-                cmd.setParseError();
-                cmd.setErrorMessage("[ERROR] Expected ; at end of command");
+                cmd.setError("[ERROR] Expected ; at end of command");
                 return cmd;
             }
-            // Create and return the CreateTableCMD object
             return new CreateCMD(tableName, null, false);
         } else {
-            cmd.setParseError();
-            cmd.setErrorMessage("[ERROR] Expected DATABASE or TABLE keyword after CREATE");
+            cmd.setError("[ERROR] Expected DATABASE or TABLE keyword after CREATE");
             return cmd;
         }
     }
@@ -515,7 +500,6 @@ public class Parser {
     private List<String> parseAttributeList() throws ParseException {
         List<String> attributes = new ArrayList<>();
 
-        // Parse the first attribute name
         String attributeName = parseAttributeName();
         attributes.add(attributeName);
 
@@ -527,7 +511,6 @@ public class Parser {
             nextToken = getNextToken();
         }
 
-        // Return the list of attribute names
         pos--;
         return attributes;
     }
@@ -552,34 +535,28 @@ public class Parser {
 
     private UseCMD parseUse() throws ParseException {
         UseCMD cmd = new UseCMD(null);
-        // Consume the "USE" keyword
+
         if (!getNextToken().equalsIgnoreCase("USE")) {
-            cmd.setParseError();
-            cmd.setErrorMessage("[ERROR] Expected USE keyword");
+            cmd.setError("[ERROR] Expected USE keyword");
             return cmd;
         }
 
-        // Consume the database name, if present
         String databaseName = null;
         String nextToken = getNextToken();
         if (nextToken.matches("[a-zA-Z][a-zA-Z0-9]*")) {
             databaseName = nextToken;
         } else {
-            cmd.setParseError();
-            cmd.setErrorMessage("[ERROR] Expected a database name");
+            cmd.setError("[ERROR] Expected a database name");
             return cmd;
         }
 
          if (!getNextToken().equalsIgnoreCase(";")) {
-             cmd.setParseError();
-             cmd.setErrorMessage("[ERROR] Expected ; at end of command");
+             cmd.setError("[ERROR] Expected ; at end of command");
              return cmd;
         }
-        // Create and return the UseCMD object
+
         return new UseCMD(databaseName);
     }
-
-
 
 //    private AlterCMD parseAlter() throws ParseException {
 //        AlterCMD cmd = new AlterCMD();
