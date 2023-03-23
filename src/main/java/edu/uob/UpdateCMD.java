@@ -62,7 +62,6 @@ public class UpdateCMD extends DBcmd {
         }
         List<SetClause> setClauseList = this.getSetClauseList();
         SetClause setClause = setClauseList.get(0);
-        FileManager FM = new FileManager();
         setAttributeName(setClause.getAttributeName());
         try {
             if (s.getCurrentDatabase() == null) {
@@ -71,14 +70,13 @@ public class UpdateCMD extends DBcmd {
                 return "[ERROR] Table " + this.tableName + " does not exist in the database";
             }
 
-            Table table = FM.parseFileToTable(tableName, s.getCurrDbName());
-
+            Table tableFromFile = new FileManager().parseFileToTable(tableName, s.getCurrDbName());
             // Update rows that match the condition
-            int numRowsUpdated = table.updateRows(attributeName, setClause.getValue(), condition);
-            String filePath = FM.getDbPath().toString() + File.separator + tableName;
+            int numRowsUpdated = tableFromFile.updateRows(attributeName, setClause.getValue(), condition);
 
-            // only write the updated row to the file?
-            FM.parseTableToFile(table, filePath);
+            FileManager FM2 = new FileManager();
+            String path = FM2.getDbPath() + File.separator + s.getCurrDbName() + File.separator + tableName;
+            FM2.parseTableToFile(tableFromFile, path);
 
             // Format the result string
             StringBuilder resultBuilder = new StringBuilder("[OK] ");

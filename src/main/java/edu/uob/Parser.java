@@ -34,10 +34,66 @@ public class Parser {
             cmd = parseDelete();
         } else if (token.equalsIgnoreCase("DROP")) {
             cmd = parseDrop();
-//        } else if (token.equalsIgnoreCase("JOIN")) {
-//            cmd = parseJoin();
+        } else if (token.equalsIgnoreCase("JOIN")) {
+            cmd = parseJoin();
         } else {
             return new parseFailCMD("[ERROR]" + " invalid command: " + token);
+        }
+        return cmd;
+    }
+
+    private JoinCMD parseJoin() throws ParseException {
+        JoinCMD cmd = new JoinCMD();
+
+        if (!getNextToken().equalsIgnoreCase("JOIN")) {
+            cmd.setError("[ERROR] Expected JOIN keyword");
+            return cmd;
+        }
+        String tableName1 = getNextToken();
+        if (!tableName1.matches("[a-zA-Z][a-zA-Z0-9]*")) {
+            cmd.setError("[ERROR] Invalid table name: " + tableName1);
+            return cmd;
+        }
+        cmd.setTableName1(tableName1);
+
+        if (!getNextToken().equalsIgnoreCase("AND")) {
+            cmd.setError("[ERROR] Expected AND keyword");
+            return cmd;
+        }
+
+        String tableName2 = getNextToken();
+        if (!tableName2.matches("[a-zA-Z][a-zA-Z0-9]*")) {
+            cmd.setError("[ERROR] Invalid table name: " + tableName2);
+            return cmd;
+        }
+        cmd.setTableName2(tableName2);
+
+        if (!getNextToken().equalsIgnoreCase("ON")) {
+            cmd.setError("[ERROR] Expected ON keyword");
+            return cmd;
+        }
+
+        String attributeName1 = getNextToken();
+        if (!attributeName1.matches("[a-zA-Z][a-zA-Z0-9]*")) {
+            cmd.setError("[ERROR] Invalid attribute name: " + attributeName1);
+            return cmd;
+        }
+        cmd.setAttributeName1(attributeName1);
+
+        if (!getNextToken().equalsIgnoreCase("AND")) {
+            cmd.setError("[ERROR] Expected AND keyword");
+            return cmd;
+        }
+        String attributeName2 = getNextToken();
+        if (!attributeName2.matches("[a-zA-Z][a-zA-Z0-9]*")) {
+            cmd.setError("[ERROR] Invalid attribute name: " + attributeName2);
+            return cmd;
+        }
+        cmd.setAttributeName2(attributeName2);
+
+        if (!getNextToken().equals(";")) {
+            cmd.setError("[ERROR] Expected semicolon");
+            return cmd;
         }
         return cmd;
     }

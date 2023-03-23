@@ -17,6 +17,11 @@ public class DataValue {
         this.value = value;
     }
 
+    @Override
+    public String toString() {
+        return value;
+    }
+
     public String getHeader() {
         return header;
     }

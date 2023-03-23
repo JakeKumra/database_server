@@ -65,13 +65,10 @@ public class SelectCMD extends DBcmd {
                 e.printStackTrace();
                 return "[ERROR] invalid input query";
             }
-
-
             // Check if any rows match the condition
             if (filteredRows.isEmpty()) {
                 return "[OK] No rows found";
             }
-
             // Create a list of columns to display based on attributes or wildcard
             List<Column> columnsToDisplay;
             if (hasWildcard()) {
@@ -89,7 +86,6 @@ public class SelectCMD extends DBcmd {
                     }
                 }
             }
-
             // Create a list of rows to display
             List<List<String>> rowsToDisplay = new ArrayList<>();
             for (Row row : filteredRows) {

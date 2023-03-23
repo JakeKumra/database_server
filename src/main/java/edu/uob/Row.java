@@ -45,6 +45,34 @@ public class Row {
         return values.get(index);
     }
 
+    public List<DataValue> getValuesExcluding(String... headersToExclude) {
+        List<DataValue> valuesExcluding = new ArrayList<>();
+        for (DataValue value : values) {
+            boolean exclude = false;
+            for (String headerToExclude : headersToExclude) {
+                if (value.getHeader().equals(headerToExclude)) {
+                    exclude = true;
+                    break;
+                }
+            }
+            if (!exclude) {
+                valuesExcluding.add(value);
+            }
+        }
+        return valuesExcluding;
+    }
+
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < values.size(); i++) {
+            sb.append(values.get(i).toString());
+            if (i < values.size() - 1) {
+                sb.append("\t");
+            }
+        }
+        return sb.toString();
+    }
+
     public String getValueByCol(String colName) {
         for (int i=0; i<values.size(); i++) {
             if (values.get(i).getHeader().equals(colName)) {

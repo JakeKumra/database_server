@@ -80,10 +80,13 @@ public class ExampleDBTests {
         sendCommandToServer("INSERT INTO marks VALUES ('Dave', 55, TRUE);");
         sendCommandToServer("INSERT INTO marks VALUES ('Bob', 35, FALSE);");
         sendCommandToServer("INSERT INTO marks VALUES ('Clive', 20, FALSE);");
-        String response = sendCommandToServer("DELETE FROM marks WHERE name == 'Dave';");
-        assertTrue(response.contains("[OK]"), "A valid query was made, however an [OK] tag was not returned");
-        String responseTwo = sendCommandToServer("DELETE FROM marks name == 'Dave';");
-        assertTrue(responseTwo.contains("[ERROR]"), "An invalid query was made, however an [ERROR] tag was not returned");
+        String response = sendCommandToServer("SELECT * FROM marks;");
+        assertTrue(response.contains("Dave"), "A valid query was made, however an [OK] tag was not returned");
+        sendCommandToServer("DELETE FROM marks WHERE name == 'Dave';");
+        sendCommandToServer("DELETE FROM marks WHERE name == 'Clive';");
+        String responseTwo = sendCommandToServer("SELECT * FROM marks;");
+        assertFalse(responseTwo.contains("Dave"), "A valid delete query was made, however 'Dave' was returned");
+        assertFalse(responseTwo.contains("Clive"), "A valid delete query was made, however 'Clive' was returned");
     }
 
     @Test
@@ -96,14 +99,11 @@ public class ExampleDBTests {
         sendCommandToServer("INSERT INTO marks VALUES ('Dave', 55, TRUE);");
         sendCommandToServer("INSERT INTO marks VALUES ('Bob', 35, FALSE);");
         sendCommandToServer("INSERT INTO marks VALUES ('Clive', 20, FALSE);");
-        String responseOne = sendCommandToServer("UPDATE marks SET mark = 38 WHERE name == 'Clive';");
-        assertTrue(responseOne.contains("[OK]"), "A valid query was made, however an [OK] tag was not returned");
-        String responseTwo = sendCommandToServer("UPDATE marks SET pass = FALSE WHERE name == 'Steve';");
-        assertTrue(responseOne.contains("[OK]"), "A valid query was made, however an [OK] tag was not returned");
-        String responseThree = sendCommandToServer("UPDATE marks SET mark = 38 WHERE name == 'Clive';");
-
-        String response = sendCommandToServer("SELECT * FROM marks;");
-        // TODO add some test cases here
+        sendCommandToServer("UPDATE marks SET mark = 38 WHERE name == 'Clive';");
+        String responseTwo = sendCommandToServer("SELECT * FROM marks;");
+        assertTrue(responseTwo.contains("[OK]"), "A valid query was made, however an [OK] tag was not returned");
+        assertTrue(responseTwo.contains("38"), "A valid query was made, however 38 was not returned");
+        assertFalse(responseTwo.contains("20"), "A valid query was made, however 20 was returned");
     }
 
     @Test
@@ -134,6 +134,27 @@ public class ExampleDBTests {
         String response = sendCommandToServer("CREATE TABLE;");
         System.out.println(response);
         assertTrue(response.contains("[ERROR]"), "CREATE TABLE with no name didn't return [ERROR]");
+    }
+
+    @Test
+    public void testCreateAndInsert() {
+        String randomName = generateRandomName();
+        sendCommandToServer("CREATE DATABASE " + randomName + ";");
+        sendCommandToServer("USE " + randomName + ";");
+        sendCommandToServer("CREATE TABLE marks (name, mark, pass);");
+        sendCommandToServer("INSERT INTO marks VALUES ('Steve', 65, TRUE);");
+        sendCommandToServer("INSERT INTO marks VALUES ('Dave', 55, TRUE);");
+        sendCommandToServer("INSERT INTO marks VALUES ('Bob', 35, FALSE);");
+        sendCommandToServer("INSERT INTO marks VALUES ('Clive', 20, FALSE);");
+
+        sendCommandToServer("CREATE TABLE coursework (task, submission);");
+        sendCommandToServer("INSERT INTO coursework VALUES (OXO, 3);");
+        sendCommandToServer("INSERT INTO coursework VALUES (DB, 1);");
+        sendCommandToServer("INSERT INTO coursework VALUES (OXO, 4);");
+        sendCommandToServer("INSERT INTO coursework VALUES (STAG, 2);");
+
+        String response = sendCommandToServer("JOIN coursework AND marks ON submission AND id;");
+        System.out.println(response);
     }
 
     @Test

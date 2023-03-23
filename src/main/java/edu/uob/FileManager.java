@@ -40,6 +40,7 @@ public class FileManager {
                 rows.add(row);
             }
         }
+
         reader.close();
 
         // create a table with the parsed headers and rows
@@ -82,6 +83,7 @@ public class FileManager {
             }
             writer.newLine();
         }
+        writer.flush();
         writer.close();
     }
 }

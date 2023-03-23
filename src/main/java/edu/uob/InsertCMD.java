@@ -57,7 +57,7 @@ public class InsertCMD extends DBcmd {
 
             FileManager FM = new FileManager();
             String path = FM.getDbPath() + File.separator + s.getCurrDbName() + File.separator + tableName;
-            new FileManager().parseTableToFile(tableFromFile, path);
+            FM.parseTableToFile(tableFromFile, path);
 
             return String.format("[OK] %s added to table %s inside database %s", values, tableName, s.getCurrDbName());
         } catch (IOException e) {

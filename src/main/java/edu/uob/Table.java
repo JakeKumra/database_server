@@ -14,6 +14,16 @@ public class Table {
         this.rows = new ArrayList<>();
     }
 
+    public List<String> getHeadersList() {
+        List<String> headersList = new ArrayList<>();
+        if (headers != null) {
+            for (int i = 0; i < headers.length; i++) {
+                headersList.add(headers[i]);
+            }
+        }
+        return headersList;
+    }
+
     public void setHeaders(String [] headers) {
         this.headers = headers;
     }
@@ -103,8 +113,6 @@ public class Table {
         }
         return count;
     }
-
-
 
     private boolean evaluateCondition(Row row, Condition condition) {
 
