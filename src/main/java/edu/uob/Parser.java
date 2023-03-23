@@ -28,8 +28,8 @@ public class Parser {
             cmd = parseSelect();
         } else if (token.equalsIgnoreCase("UPDATE")) {
             cmd = parseUpdate();
-//        } else if (token.equalsIgnoreCase("ALTER")) {
-//            cmd = parseAlter();
+        } else if (token.equalsIgnoreCase("ALTER")) {
+            cmd = parseAlter();
         } else if (token.equalsIgnoreCase("DELETE")) {
             cmd = parseDelete();
         } else if (token.equalsIgnoreCase("DROP")) {
@@ -95,6 +95,48 @@ public class Parser {
             cmd.setError("[ERROR] Expected semicolon");
             return cmd;
         }
+        return cmd;
+    }
+
+        private AlterCMD parseAlter() throws ParseException {
+        AlterCMD cmd = new AlterCMD();
+
+        if (!getNextToken().equalsIgnoreCase("ALTER")) {
+            cmd.setError("[ERROR] Expected ALTER keyword");
+            return cmd;
+        }
+
+        if (!getNextToken().equalsIgnoreCase("TABLE")) {
+            cmd.setError("[ERROR] Expected TABLE keyword");
+            return cmd;
+        }
+
+        String tableName = getNextToken();
+        if (!tableName.matches("[a-zA-Z][a-zA-Z0-9]*")) {
+            cmd.setError("[ERROR] invalid table name");
+            return cmd;
+        }
+        cmd.setTableName(tableName);
+
+        if (!getNextToken().equalsIgnoreCase("ADD")) {
+            pos--;
+            if (!getNextToken().equalsIgnoreCase("DROP")) {
+                cmd.setError("[ERROR] Expected ADD or DROP keyword");
+                return cmd;
+            }
+        }
+        pos--;
+        String alterationType = getCurrentToken();
+        cmd.setAlterationType(alterationType);
+
+        pos++;
+        String attributeName = getNextToken();
+        if (!attributeName.matches("[a-zA-Z][a-zA-Z0-9]*")) {
+            cmd.setError("[ERROR] invalid attribute name");
+            return cmd;
+        }
+        cmd.setAttributeName(attributeName);
+
         return cmd;
     }
 
@@ -613,13 +655,6 @@ public class Parser {
 
         return new UseCMD(databaseName);
     }
-
-//    private AlterCMD parseAlter() throws ParseException {
-//        AlterCMD cmd = new AlterCMD();
-//        // Parse the rest of the command here
-//        // Set the attributes of the AlterCMD object based on the tokens
-//        return cmd;
-//    }
 
     private String getNextToken() throws ParseException {
         if (pos >= tokens.size()) {

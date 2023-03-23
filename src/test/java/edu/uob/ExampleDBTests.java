@@ -163,6 +163,43 @@ public class ExampleDBTests {
     }
 
     @Test
+    public void testAlterDrop() {
+        String randomName = generateRandomName();
+        sendCommandToServer("CREATE DATABASE " + randomName + ";");
+        sendCommandToServer("USE " + randomName + ";");
+        sendCommandToServer("CREATE TABLE marks (name, mark, pass);");
+        sendCommandToServer("INSERT INTO marks VALUES ('Steve', 65, TRUE);");
+        sendCommandToServer("INSERT INTO marks VALUES ('Dave', 55, TRUE);");
+        sendCommandToServer("INSERT INTO marks VALUES ('Bob', 35, FALSE);");
+        sendCommandToServer("INSERT INTO marks VALUES ('Clive', 20, FALSE);");
+        String response = sendCommandToServer("ALTER TABLE marks DROP pass;");
+        assertTrue(response.contains("[OK]"), "A valid query was made, however an [OK] tag was not returned");
+        String responseThree = sendCommandToServer("SELECT * FROM marks;");
+        assertFalse(responseThree.contains("pass"), "A valid query was made, however pass was returned");
+        assertFalse(responseThree.contains("TRUE"), "A valid query was made, however TRUE was returned");
+        assertFalse(responseThree.contains("FALSE"), "A valid query was made, however FALSE was returned");
+        String responseTwo = sendCommandToServer("ALTER TABLE marks DROP id;");
+        assertTrue(responseTwo.contains("[ERROR]"), "An invalid query was made, however an [ERROR] tag was not returned");
+    }
+
+    @Test
+    public void testAlterAdd() {
+        String randomName = generateRandomName();
+        sendCommandToServer("CREATE DATABASE " + randomName + ";");
+        sendCommandToServer("USE " + randomName + ";");
+        sendCommandToServer("CREATE TABLE marks (name, mark, pass);");
+        sendCommandToServer("INSERT INTO marks VALUES ('Steve', 65, TRUE);");
+        sendCommandToServer("INSERT INTO marks VALUES ('Dave', 55, TRUE);");
+        sendCommandToServer("INSERT INTO marks VALUES ('Bob', 35, FALSE);");
+        sendCommandToServer("INSERT INTO marks VALUES ('Clive', 20, FALSE);");
+        String response = sendCommandToServer("ALTER TABLE marks ADD mark;");
+        assertTrue(response.contains("[ERROR]"), "An invalid query was made, however [ERROR] was not returned");
+        String responseTwo = sendCommandToServer("ALTER TABLE marks ADD email;");
+        assertTrue(responseTwo.contains("[OK]"), "A valid query was made, however an [OK] tag was not returned");
+        assertTrue(responseTwo.contains("email"), "A valid query was made, however email tag was not returned");
+    }
+
+    @Test
     public void testQueryID() {
         String randomName = generateRandomName();
         sendCommandToServer("CREATE DATABASE " + randomName + ";");

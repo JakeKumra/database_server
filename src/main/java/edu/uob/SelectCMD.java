@@ -118,5 +118,8 @@ public class SelectCMD extends DBcmd {
         } catch (IOException e) {
             e.printStackTrace();
             return "[ERROR] Failed to retrieve data from database";
+        } catch (IndexOutOfBoundsException e) {
+            System.out.println(e);
+            return "[ERROR] An error has occurred";
         }
     }}

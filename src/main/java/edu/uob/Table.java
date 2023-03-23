@@ -1,12 +1,13 @@
 package edu.uob;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Table {
     private final String name;
     private final ArrayList<Column> columns;
     private String[] headers;
-    private final ArrayList<Row> rows;
+    private ArrayList<Row> rows;
 
     public Table(String name) {
         this.name = name;
@@ -26,6 +27,12 @@ public class Table {
 
     public void setHeaders(String [] headers) {
         this.headers = headers;
+    }
+
+    public void addHeader(String attributeName) {
+        String[] newHeaders = Arrays.copyOf(headers, headers.length + 1);
+        newHeaders[newHeaders.length - 1] = attributeName;
+        setHeaders(newHeaders);
     }
 
     public Column getColumn(String columnName) {
@@ -73,6 +80,33 @@ public class Table {
 
     public void addColumn(Column column) {
         columns.add(column);
+    }
+
+    public void removeHeaderFromList(String header) {
+        String[] newHeaders = new String[this.headers.length - 1];
+        int index = 0;
+        for (int i = 0; i < this.headers.length; i++) {
+            if (!this.headers[i].equals(header)) {
+                newHeaders[index] = this.headers[i];
+                index++;
+            }
+        }
+        this.setHeaders(newHeaders);
+    }
+
+    public int getHeaderIndex(String header) {
+        if (this.headers != null) {
+            for (int i=0; i<this.headers.length; i++) {
+                if (headers[i].equals(header)) {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
+
+    public void setRows (ArrayList<Row> allRows) {
+        this.rows = allRows;
     }
 
     public void addRow(Row row) {
