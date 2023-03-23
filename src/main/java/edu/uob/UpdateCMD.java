@@ -7,11 +7,10 @@ import java.util.List;
 public class UpdateCMD extends DBcmd {
     private String tableName;
     private String attributeName;
-    private String newValue;
+
     private Condition condition;
 
     private boolean whereQuery;
-
 
     private List<SetClause> setClauseList;
 
@@ -19,16 +18,11 @@ public class UpdateCMD extends DBcmd {
         super();
         this.tableName = null;
         this.attributeName = null;
-        this.newValue = null;
         this.condition = null;
     }
 
     public void setTableName(String tableName) {
         this.tableName = tableName;
-    }
-
-    public boolean isWhereQuery() {
-        return whereQuery;
     }
 
     public void setWhereQuery(boolean whereQuery) {
@@ -46,11 +40,6 @@ public class UpdateCMD extends DBcmd {
     public void setAttributeName(String attributeName) {
         this.attributeName = attributeName;
     }
-
-    public void setNewValue(String newValue) {
-        this.newValue = newValue;
-    }
-
     public void setCondition(Condition condition) {
         this.condition = condition;
     }

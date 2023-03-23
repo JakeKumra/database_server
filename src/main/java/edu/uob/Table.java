@@ -122,11 +122,6 @@ public class Table {
             String conditionValue = removeQuotes(condition.getValue());
             String columnValue = row.getValueByCol(columnName);
 
-    //        System.out.println("operator: " + operator + "\n");
-    //        System.out.println("column: " + columnName + "\n");
-//            System.out.println("Condition value: " + conditionValue);
-//            System.out.println("Data value: "+ columnValue);
-
             if (condition.isSimpleComparison()) {
 
                 if (operator.equals("<")) {

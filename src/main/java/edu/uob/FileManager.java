@@ -56,8 +56,6 @@ public class FileManager {
         }
         return table;
     }
-
-    // TODO update this to stop it from completely writing over new files and instead only what has changed
     public void parseTableToFile(Table table, String filePath) throws IOException {
 
         BufferedWriter writer = new BufferedWriter(new FileWriter(filePath));

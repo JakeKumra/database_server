@@ -32,8 +32,6 @@ public class DBServer {
             System.out.println("Can't seem to create database storage folder " + storageFolderPath);
         }
     }
-
-    // TODO check the .tab parts of this I'm not sure about it
     public Database getDatabaseFromFile(String dbName) {
         String databasesPath = new FileManager().getDbPath();
         File dbFolder = new File(databasesPath, dbName);

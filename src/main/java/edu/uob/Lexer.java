@@ -27,9 +27,6 @@ public class Lexer {
                 tokens.addAll(Arrays.asList(nextBatchOfTokens));
             }
         }
-        // Finally, loop through the result array list, printing out each token a line at a time
-        // TODO remove this loop
-        // for(int i=0; i<tokens.size(); i++) System.out.println(tokens.get(i));
         return tokens;
     }
 

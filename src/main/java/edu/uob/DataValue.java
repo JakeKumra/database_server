@@ -13,10 +13,6 @@ public class DataValue {
         return value;
     }
 
-    public void setValue(String value) {
-        this.value = value;
-    }
-
     @Override
     public String toString() {
         return value;
@@ -24,10 +20,6 @@ public class DataValue {
 
     public String getHeader() {
         return header;
-    }
-
-    public void setHeader(String column) {
-        this.header = column;
     }
 }
 

@@ -31,41 +31,18 @@ public class Condition {
     public String getOperator() {
         return operator;
     }
-
-    public void setOperator(String operator) {
-        this.operator = operator;
-    }
-
     public String getValue() {
         return value;
     }
-
-    public void setValue(String value) {
-        this.value = value;
-    }
-
     public Condition getNested() {
         return nested;
-    }
-
-    public void setNested(Condition nested) {
-        this.nested = nested;
     }
 
     public Condition getRight() {
         return right;
     }
-
-    public void setRight(Condition right) {
-        this.right = right;
-    }
-
     public String getBoolOp() {
         return boolOp;
-    }
-
-    public void setBoolOp(String boolOp) {
-        this.boolOp = boolOp;
     }
 
     public boolean isSimpleComparison() {

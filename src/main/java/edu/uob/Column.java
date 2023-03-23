@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Column {
-
     private final String name;
     private final List<DataValue> values;
 

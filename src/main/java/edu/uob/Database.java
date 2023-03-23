@@ -21,14 +21,6 @@ public class Database {
         tables.put(tableName, table);
     }
 
-    public void removeTable(String tableName) {
-        tables.remove(tableName);
-    }
-
-    public Table getTable(String tableName) {
-        return tables.get(tableName);
-    }
-
     public HashMap<String, Table> getAllTables() {
         return tables;
     }

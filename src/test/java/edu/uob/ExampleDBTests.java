@@ -154,7 +154,12 @@ public class ExampleDBTests {
         sendCommandToServer("INSERT INTO coursework VALUES (STAG, 2);");
 
         String response = sendCommandToServer("JOIN coursework AND marks ON submission AND id;");
-        System.out.println(response);
+        assertTrue(response.contains("[OK]"), "A valid query was made, however an [OK] tag was not returned");
+        assertTrue(response.contains("Bob"), "A valid query was made, however Bob was not returned");
+        assertTrue(response.contains("Clive"), "A valid query was made, however Clive was not returned");
+        assertTrue(response.contains("OXO"), "A valid query was made, however OXO was not returned");
+        assertTrue(response.contains("Dave"), "A valid query was made, however Dave was not returned");
+        assertTrue(response.contains("STAG"), "A valid query was made, however STAg was not returned");
     }
 
     @Test
@@ -251,7 +256,7 @@ public class ExampleDBTests {
         String responseFive = sendCommandToServer("SELECT * marks WHERE mark ! 35");
         assertTrue(responseFive.contains("[ERROR]"), "An invalid query was made, however an [ERROR] tag was not returned");
         String responseSix = sendCommandToServer("SELECT * FROM;");
-        assertTrue(responseFive.contains("[ERROR]"), "An invalid query was made, however an [ERROR] tag was not returned");
+        assertTrue(responseSix.contains("[ERROR]"), "An invalid query was made, however an [ERROR] tag was not returned");
     }
 
 
