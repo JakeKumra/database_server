@@ -25,7 +25,10 @@ public class SQLKeywords {
     }
 
     public static boolean isKeyword(String name) {
-        return keywords.contains(name.toUpperCase());
+        if (name != null) {
+            return keywords.contains(name.toUpperCase());
+        }
+        return false;
     }
 }
 

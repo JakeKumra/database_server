@@ -15,9 +15,7 @@ public class Parser {
 
     public DBcmd parse() throws ParseException {
         DBcmd cmd = null;
-
         String token = getCurrentToken();
-
         if (token.equalsIgnoreCase("USE")) {
             cmd = parseUse();
         } else if (token.equalsIgnoreCase("CREATE")) {
@@ -622,7 +620,6 @@ public class Parser {
             String tableName = attributeName;
             attributeName = getNextToken();
 
-            // Construct the fully qualified attribute name
             attributeName = tableName + "." + attributeName;
         } else {
             pos--;

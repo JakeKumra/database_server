@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static edu.uob.SQLKeywords.isKeyword;
+
 public class SelectCMD extends DBcmd {
     private List<String> attributeList;
     private boolean whereQuery;
@@ -25,11 +27,9 @@ public class SelectCMD extends DBcmd {
     public void setTableName(String tableName) {
         this.tableName = tableName;
     }
-
     public void setCondition(Condition condition) {
         this.condition = condition;
     }
-
 
     public void setAttributeList(List<String> attributeList) {
         this.attributeList = attributeList;
@@ -47,8 +47,9 @@ public class SelectCMD extends DBcmd {
     public String query(DBServer s) {
         if (parseError) {
             return errorMessage;
+        } else if (isKeyword(tableName)) {
+            return "[ERROR] Attempt to use reserved keyword";
         }
-
         try {
             if (s.getCurrentDatabase() == null) {
                 return "[ERROR] no database has been selected";
@@ -56,15 +57,10 @@ public class SelectCMD extends DBcmd {
                 return "[ERROR] Table " + this.tableName + " does not exist in the database";
             }
             Table table = new FileManager().parseFileToTable(tableName, s.getCurrDbName());
-
             // Create a list of rows that match the condition (if present)
             List<Row> filteredRows;
-            try {
-                filteredRows = whereQuery ? table.filterRows(this.condition) : table.getRows();
-            } catch (IllegalArgumentException e) {
-                e.printStackTrace();
-                return "[ERROR] invalid input query";
-            }
+            filteredRows = whereQuery ? table.filterRows(this.condition) : table.getRows();
+
             // Check if any rows match the condition
             if (filteredRows.isEmpty()) {
                 return "[OK] No rows found";
@@ -121,5 +117,8 @@ public class SelectCMD extends DBcmd {
         } catch (IndexOutOfBoundsException e) {
             System.out.println(e);
             return "[ERROR] An error has occurred";
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+            return "[ERROR] invalid input query";
         }
     }}

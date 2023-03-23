@@ -1,9 +1,9 @@
 package edu.uob;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
+
+import static edu.uob.SQLKeywords.isKeyword;
 
 public class AlterCMD extends DBcmd {
 
@@ -33,15 +33,15 @@ public class AlterCMD extends DBcmd {
 
         if (parseError) {
             return errorMessage;
-        }
-
-        if (s.getCurrentDatabase() == null) {
+        } else if (s.getCurrentDatabase() == null) {
             return "[ERROR] no database has been selected";
         } else if (!s.getTableNames().contains(this.tableName)) {
             return "[ERROR] Table " + this.tableName + " does not exist in the database";
+        } else if (isKeyword(tableName)) {
+            return "[ERROR] reserved SQL keyword used";
         }
-        FileManager FM = new FileManager();
         try {
+            FileManager FM = new FileManager();
             Table table = FM.parseFileToTable(tableName, s.getCurrDbName());
             if (alterationType.equalsIgnoreCase("DROP")) {
                 // check that it's not the id column
@@ -60,22 +60,11 @@ public class AlterCMD extends DBcmd {
                     return "[ERROR] attribute type " + attributeName + " not found in table";
                 }
                 int index = table.getHeaderIndex(attributeName);
-                System.out.println("index: "+ index);
                 if (index != -1) {
-                    // loop through rows and remove at position of index
-                    ArrayList<Row> allRows = table.getRows();
-                    for (Row row : allRows) {
-                        for (int i=0; i<row.getValues().size(); i++) {
-                            if (i == index) {
-                                row.getValues().remove(i);
-                            }
-                        }
-                    }
-                    table.setRows(allRows);
+                    table.removeColumn(index, attributeName);
                 } else {
                     return "[ERROR] attribute type " + attributeName + " not found in table";
                 }
-                table.removeHeaderFromList(attributeName);
                 FileManager FM2 = new FileManager();
                 String filePath = FM2.getDbPath() + File.separator + s.getCurrDbName() + File.separator + tableName;
                 FM2.parseTableToFile(table, filePath);
@@ -90,8 +79,16 @@ public class AlterCMD extends DBcmd {
                 return "[OK] table column " + attributeName + " was added";
             }
         } catch (IOException e) {
+            e.printStackTrace();
             return "[ERROR] unable to load table " + this.tableName + " from database";
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+            return "[ERROR] an error has occurred";
+        } catch (IndexOutOfBoundsException e) {
+            e.printStackTrace();
+            return "[ERROR] an error has occurred";
         }
-        return "";
+        return "[ERROR] an error has occurred";
     }
 }
+

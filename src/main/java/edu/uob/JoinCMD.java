@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+import static edu.uob.SQLKeywords.isKeyword;
+
 public class JoinCMD extends DBcmd {
     private String tableName1;
     private String tableName2;
@@ -36,21 +38,23 @@ public class JoinCMD extends DBcmd {
             return errorMessage;
         } else if (s.getCurrentDatabase() == null) {
             return "[ERROR] no database has been selected for use";
-        }
-        String databasePath = new FileManager().getDbPath() + File.separator + s.getCurrDbName();
-        File table1File = new File (databasePath + File.separator + tableName1);
-        File table2File = new File (databasePath + File.separator + tableName2);
-
-        if (!table1File.exists() || !table2File.exists()) {
-            return "[ERROR] tables can't be found in database";
+        } else if (isKeyword(tableName1) || (isKeyword(tableName2)
+                || (isKeyword(attributeName1) || (isKeyword(attributeName2))))) {
+            return "[ERROR] reserved SQL keyword used";
         }
         try {
+            String databasePath = new FileManager().getDbPath() + File.separator + s.getCurrDbName();
+            File table1File = new File (databasePath + File.separator + tableName1);
+            File table2File = new File (databasePath + File.separator + tableName2);
+
+            if (!table1File.exists() || !table2File.exists()) {
+                return "[ERROR] tables can't be found in database";
+            }
             Table table1 = new FileManager().parseFileToTable(tableName1, s.getCurrDbName());
             Table table2 = new FileManager().parseFileToTable(tableName2, s.getCurrDbName());
             if (table1 == null || table2 == null) {
                 return "[ERROR] One or both tables not found";
             }
-
             StringBuilder result = new StringBuilder();
             result.append("[OK] \n").append("id \t");
             List<String> headers1 = table1.getHeadersList();
@@ -86,6 +90,12 @@ public class JoinCMD extends DBcmd {
             }
             return result.toString();
         } catch (IOException e) {
+            e.printStackTrace();
+            return "[ERROR] tables can't be joined";
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+            return "[ERROR] tables can't be joined";
+        } catch (IndexOutOfBoundsException e) {
             e.printStackTrace();
             return "[ERROR] tables can't be joined";
         }

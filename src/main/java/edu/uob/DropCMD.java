@@ -2,6 +2,8 @@ package edu.uob;
 
 import java.io.File;
 
+import static edu.uob.SQLKeywords.isKeyword;
+
 public class DropCMD extends DBcmd {
 
     private String databaseName;
@@ -11,10 +13,6 @@ public class DropCMD extends DBcmd {
         super();
         this.databaseName = null;
         this.tableName = null;
-    }
-
-    public void setParseError() {
-        this.parseError = true;
     }
 
     public void setErrorMessage(String errorMessage) {
@@ -33,31 +31,41 @@ public class DropCMD extends DBcmd {
     public String query(DBServer s) {
         if (parseError) {
             return errorMessage;
+        } else if (isKeyword(tableName) || (isKeyword(databaseName))) {
+            return "[ERROR] reserved SQL keyword used";
         }
-        if (databaseName != null) {
-            File dbFile = new File(new FileManager().getDbPath(), databaseName);
-            if (dbFile.exists() && dbFile.delete()) {
-                if (s.getCurrDbName().equals(databaseName)) {
-                    s.setCurrentDatabase(null);
-                }
-                return "[OK] database " + databaseName + " has been removed";
-            } else {
-                return "[ERROR] database " + databaseName + " can't be found or removed";
-            }
-        } else if (tableName != null) {
-            Database currDb = s.getCurrentDatabase();
-            if (currDb != null) {
-                File tableFile = new File(new FileManager().getDbPath() + File.separator + s.getCurrDbName(), tableName);
-                if (tableFile.exists() && tableFile.delete()) {
-                    return "[OK] " + tableName + " has been deleted from database";
+        try {
+            if (databaseName != null) {
+                File dbFile = new File(new FileManager().getDbPath(), databaseName);
+                if (dbFile.exists() && dbFile.delete()) {
+                    if (s.getCurrDbName().equals(databaseName)) {
+                        s.setCurrentDatabase(null);
+                    }
+                    return "[OK] database " + databaseName + " has been removed";
                 } else {
-                    return "[ERROR] table " + tableName + " not found in database / can't be removed";
+                    return "[ERROR] database " + databaseName + " can't be found or removed";
+                }
+            } else if (tableName != null) {
+                Database currDb = s.getCurrentDatabase();
+                if (currDb != null) {
+                    File tableFile = new File(new FileManager().getDbPath() + File.separator + s.getCurrDbName(), tableName);
+                    if (tableFile.exists() && tableFile.delete()) {
+                        return "[OK] " + tableName + " has been deleted from database";
+                    } else {
+                        return "[ERROR] table " + tableName + " not found in database / can't be removed";
+                    }
+                } else {
+                    return "[ERROR] no database has been selected";
                 }
             } else {
-                return "[ERROR] no database has been selected";
+                return "[ERROR] Invalid DROP command.";
             }
-        } else {
-            return "[ERROR] Invalid DROP command.";
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+            return "[ERROR] has occurred";
+        } catch (ArrayIndexOutOfBoundsException e) {
+            e.printStackTrace();
+            return "[ERROR] has occurred";
         }
     }
 }

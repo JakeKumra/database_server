@@ -29,36 +29,30 @@ public class CreateCMD extends DBcmd {
         return false;
     }
 
-
     public String query(DBServer s) {
         if (parseError) {
             return errorMessage;
         } else if (reservedKeywordFound(name, attributes)) {
             return "[ERROR] Attempt to use reserved keyword";
         }
-
-        if (isDatabaseCreation) {
-            return createDatabase(name);
-        } else {
-            // creating a new table within current database
-            String currDatabaseName = s.getCurrDbName();
-            String path = new FileManager().getDbPath() + File.separator + currDatabaseName;
-            File tableFile = new File (path + File.separator + name);
-            if (tableFile.exists()) {
-                return "[ERROR]" + " table " + name + " already exists within database" + currDatabaseName;
-            } else if (duplicateAttFound()) {
-                return "[ERROR]" + " table " + name + " contains duplicate attributes";
-            }
-            if (attributes == null) {
-                try {
+        try {
+            if (isDatabaseCreation) {
+                return createDatabase(name);
+            } else {
+                // creating a new table within current database
+                String currDatabaseName = s.getCurrDbName();
+                String path = new FileManager().getDbPath() + File.separator + currDatabaseName;
+                File tableFile = new File (path + File.separator + name);
+                if (tableFile.exists()) {
+                    return "[ERROR]" + " table " + name + " already exists within database" + currDatabaseName;
+                } else if (duplicateAttFound()) {
+                    return "[ERROR]" + " table " + name + " contains duplicate attributes";
+                }
+                if (attributes == null) {
                     if (tableFile.exists()) {
                         tableFile.createNewFile();
                     }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                try {
+                } else {
                     tableFile.createNewFile();
                     // write attributes to the first line of the table file
                     FileWriter writer = new FileWriter(tableFile);
@@ -68,12 +62,18 @@ public class CreateCMD extends DBcmd {
                     }
                     writer.write("\n");
                     writer.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    System.out.println("[ERROR] unable to create new table file inside CreateCMD");
                 }
+                return "[OK] TABLE " + name + " created";
             }
-            return "[OK] TABLE " + name + " created";
+        } catch (IOException e) {
+            e.printStackTrace();
+            return "[ERROR] has occurred";
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+            return "[ERROR] has occurred";
+        } catch (ArrayIndexOutOfBoundsException e) {
+            e.printStackTrace();
+            return "[ERROR] has occurred";
         }
     }
 
@@ -88,7 +88,7 @@ public class CreateCMD extends DBcmd {
         }
     }
 
-    private boolean reservedKeywordFound (String name, List<String> attributes) {
+    public boolean reservedKeywordFound (String name, List<String> attributes) {
         if (SQLKeywords.isKeyword(name)) {
              return true;
         }

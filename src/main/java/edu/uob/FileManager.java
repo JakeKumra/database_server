@@ -3,7 +3,6 @@ import java.io.*;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 
-
 public class FileManager {
 
     private String storageFolderPath;

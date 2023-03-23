@@ -7,7 +7,6 @@ import java.nio.file.Paths;
 import java.nio.file.Files;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.List;
 
 /** This class implements the DB server. */
 public class DBServer {
@@ -101,7 +100,6 @@ public class DBServer {
             DBcmd cmd = p.parse();
             return cmd.query(this);
         } catch (ParseException e) {e.printStackTrace();}
-        // TODO check this return statement
         return "An [ERROR] has occurred";
     }
 

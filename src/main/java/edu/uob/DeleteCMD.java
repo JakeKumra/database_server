@@ -2,6 +2,9 @@ package edu.uob;
 
 import java.io.File;
 import java.io.IOException;
+
+import static edu.uob.SQLKeywords.isKeyword;
+
 public class DeleteCMD extends DBcmd {
     private String tableName;
     private Condition condition;
@@ -20,6 +23,8 @@ public class DeleteCMD extends DBcmd {
     public String query(DBServer s) {
         if (parseError) {
             return errorMessage;
+        } else if (isKeyword(tableName)) {
+            return "[ERROR] reserved SQL keyword used";
         }
         try {
             if (s.getCurrentDatabase() == null) {
@@ -27,28 +32,29 @@ public class DeleteCMD extends DBcmd {
             } else if (!s.getTableNames().contains(this.tableName)) {
                 return "[ERROR] Table " + this.tableName + " does not exist in the database";
             }
-
             Table tableFromFile = new FileManager().parseFileToTable(tableName, s.getCurrDbName());
-
             // Delete rows that match the condition (if present)
             int rowsDeleted = 0;
-            try {
-                rowsDeleted = tableFromFile.deleteRows(this.condition);
-            } catch (IllegalArgumentException e) {
-                e.printStackTrace();
-                return "[ERROR] invalid input query";
-            }
+            rowsDeleted = tableFromFile.deleteRows(this.condition);
+
             FileManager FM2 = new FileManager();
             String path = FM2.getDbPath() + File.separator + s.getCurrDbName() + File.separator + tableName;
             FM2.parseTableToFile(tableFromFile, path);
-
             // Format the result string
             String result = "[OK] " + rowsDeleted + " rows deleted";
             return result.trim();
-
         } catch (IOException e) {
             e.printStackTrace();
             return "[ERROR] Failed to retrieve data from database";
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+            return "[ERROR] has occurred";
+        } catch (IndexOutOfBoundsException e) {
+            e.printStackTrace();
+            return "[ERROR] has occurred";
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+            return "[ERROR] has occurred";
         }
     }
 }

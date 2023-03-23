@@ -1,6 +1,5 @@
 package edu.uob;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class Table {
@@ -29,10 +28,18 @@ public class Table {
         this.headers = headers;
     }
 
-    public void addHeader(String attributeName) {
-        String[] newHeaders = Arrays.copyOf(headers, headers.length + 1);
-        newHeaders[newHeaders.length - 1] = attributeName;
-        setHeaders(newHeaders);
+    public void removeColumn (int index, String attributeName) {
+        // loop through rows and remove at position of index
+        ArrayList<Row> allRows = getRows();
+        for (Row row : allRows) {
+            for (int i=0; i<row.getValues().size(); i++) {
+                if (i == index) {
+                    row.getValues().remove(i);
+                }
+            }
+        }
+        setRows(allRows);
+        removeHeaderFromList(attributeName);
     }
 
     public Column getColumn(String columnName) {

@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static edu.uob.SQLKeywords.isKeyword;
+
 public class InsertCMD extends DBcmd {
 
     String tableName;
@@ -32,16 +34,17 @@ public class InsertCMD extends DBcmd {
     public String query(DBServer s) {
         if (parseError) {
             return errorMessage;
+        } else if (isKeyword(tableName)) {
+            return "[ERROR] reserved SQL keyword used";
         }
-        if (s.getCurrentDatabase() == null) {
-            return "[ERROR] No database has been selected to use";
-        }
-        File dbFolder = new File(new FileManager().getDbPath() + File.separator + s.getCurrDbName());
-        if (!new File(dbFolder, tableName).exists()) {
-            return "[ERROR] table " + tableName + " can't be found in database";
-        }
-
         try {
+            if (s.getCurrentDatabase() == null) {
+                return "[ERROR] No database has been selected to use";
+            }
+            File dbFolder = new File(new FileManager().getDbPath() + File.separator + s.getCurrDbName());
+            if (!new File(dbFolder, tableName).exists()) {
+                return "[ERROR] table " + tableName + " can't be found in database";
+            }
             Table tableFromFile = new FileManager().parseFileToTable(tableName, s.getCurrDbName());
             if (tableFromFile.getHeaders().length != values.size() + 1) {
                 return "[ERROR] number of values does not match table attributes";
@@ -54,15 +57,19 @@ public class InsertCMD extends DBcmd {
                 int int_id = lastRow.getId() + 1;
                 addNewRow(tableFromFile, int_id);
             }
-
             FileManager FM = new FileManager();
             String path = FM.getDbPath() + File.separator + s.getCurrDbName() + File.separator + tableName;
             FM.parseTableToFile(tableFromFile, path);
-
-            return String.format("[OK] %s added to table %s inside database %s", values, tableName, s.getCurrDbName());
+            return "[OK] " + values + "added to table " + tableName + " inside database " + s.getCurrDbName();
         } catch (IOException e) {
             e.printStackTrace();
             return "[ERROR] unable to load table from database";
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+            return "[ERROR] has occurred";
+        } catch (IndexOutOfBoundsException e) {
+            e.printStackTrace();
+            return "[ERROR] has occurred";
         }
     }
 }

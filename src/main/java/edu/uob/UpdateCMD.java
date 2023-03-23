@@ -49,10 +49,11 @@ public class UpdateCMD extends DBcmd {
         if (parseError) {
             return errorMessage;
         }
-        List<SetClause> setClauseList = this.getSetClauseList();
-        SetClause setClause = setClauseList.get(0);
-        setAttributeName(setClause.getAttributeName());
         try {
+            List<SetClause> setClauseList = this.getSetClauseList();
+            SetClause setClause = setClauseList.get(0);
+            setAttributeName(setClause.getAttributeName());
+
             if (s.getCurrentDatabase() == null) {
                 return "[ERROR] no database has been selected";
             } else if (!s.getTableNames().contains(this.tableName)) {
@@ -77,6 +78,12 @@ public class UpdateCMD extends DBcmd {
             return resultBuilder.toString();
 
         } catch (IOException e) {
+            e.printStackTrace();
+            return "[ERROR] Failed to update data in database";
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+            return "[ERROR] Failed to update data in database";
+        } catch (IndexOutOfBoundsException e) {
             e.printStackTrace();
             return "[ERROR] Failed to update data in database";
         }

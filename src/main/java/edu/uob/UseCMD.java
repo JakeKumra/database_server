@@ -13,15 +13,22 @@ public class UseCMD extends DBcmd {
         if (parseError) {
             return errorMessage;
         }
-
-        Database dbFromFile = s.getDatabaseFromFile(dbName);
-        // Check if the database exists
-        if (dbFromFile == null) {
-            return "[ERROR] Database " + dbName + " does not exist";
+        try {
+            Database dbFromFile = s.getDatabaseFromFile(dbName);
+            // Check if the database exists
+            if (dbFromFile == null) {
+                return "[ERROR] Database " + dbName + " does not exist";
+            }
+            // Set the current database
+            s.setCurrentDatabase(dbFromFile);
+            return "[OK] Database changed to " + dbName;
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+            return "[ERROR] has occured";
+        } catch (IndexOutOfBoundsException e) {
+            e.printStackTrace();
+            return "[ERROR] has occured";
         }
-        // Set the current database
-        s.setCurrentDatabase(dbFromFile);
-        return "[OK] Database changed to " + dbName;
     }
 }
 
